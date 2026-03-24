@@ -3,47 +3,54 @@ const Schema = mongoose.Schema;
 
 // 1. Định nghĩa Schema bài tập nói (Speaking Exercise)
 const speakingSchema = new Schema({
-    // Basic information
-    title: { type: String, required: true },
+    // --- 1. Thông tin cơ bản ---
+    title: { type: String, required: true, trim: true },
     type: {
         type: String,
-        enum: ['self_introduction', 'description', 'conversation', 'free_topic', 'role_play', 'pronunciation'],
+        enum: [
+            'pronunciation', // Đọc từng câu (Luyện phát âm)
+            'shadowing',     // Nghe và nhại lại y hệt bản gốc
+            'role_play',     // Hội thoại nhập vai (A/B)
+            'presentation',  // Trình bày theo chủ đề (TOPIK Speaking)
+            'free_talk'      // Trả lời câu hỏi tự do
+        ],
         required: true
     },
-    prompt: { type: String, required: true },
-    instruction: { type: String },
+    prompt: { type: String, required: true }, // Đề bài. VD: "Hãy đóng vai nhân viên bán hàng..."
+    instruction: { type: String }, // Hướng dẫn chi tiết
     
-    // Timing and limits
-    duration: { type: Number, default: 60 },
-    recordingLimit: { type: Number, default: 30 },
-    
-    // Level and difficulty
-    level: {
-        type: String,
-        enum: ['Sơ cấp 1', 'Sơ cấp 2', 'Trung cấp', 'Cao cấp'],
-        required: true
-    },
-    lesson: { type: Schema.Types.ObjectId, ref: 'Lesson', default: null },
+    // --- 2. VŨ KHÍ AI SHADOWING & ROLE-PLAY ---
+    referenceAudioUrl: { type: String }, // (MỚI) File audio gốc của người Hàn để học viên nghe mẫu
+    scripts: [{ // (MỚI) Kịch bản linh hoạt cho Role-play hoặc đoạn văn dài
+        speaker: { type: String }, // VD: "A", "B", "Nhân viên"
+        korean: { type: String, required: true },
+        vietnamese: { type: String },
+        startTime: { type: Number }, // Đồng bộ sub giống hệt bài Listening
+        endTime: { type: Number }
+    }],
 
-    // Content support
-    targetSentence: { type: String },
-    wordHint: [{ type: String }],
-    pronunciationHint: [{ type: String }],
-    
-    // Sample content
-    sampleAnswer: { type: String },
+    // --- 3. Hỗ trợ nội dung (Scaffolding) ---
+    targetVocabularies: [{ type: String }], // Gợi ý từ vựng nên dùng
+    targetGrammar: [{ type: String }],      // Gợi ý cấu trúc ngữ pháp
+    sampleAnswer: { type: String },         // Bài nói mẫu (Text)
     sampleTranslation: { type: String },
     
-    // Metadata
-    tags: [{ type: String }],
-    isActive: { type: Boolean, default: true },
-    isPublic: { type: Boolean, default: false },
-    author: { type: Schema.Types.ObjectId, ref: 'User' },
+    // --- 4. Giới hạn thời gian (Dành cho thi TOPIK Speaking) ---
+    prepTime: { type: Number, default: 60 },     // Thời gian chuẩn bị (giây) - Đổi tên từ 'duration' cho rõ nghĩa
+    recordingLimit: { type: Number, default: 120 }, // Thời gian ghi âm tối đa (giây)
     
-    // Statistics
-    attemptCount: { type: Number, default: 0 },
-    averageScore: { type: Number, default: 0 },
-    completionRate: { type: Number, default: 0 }
+    // --- 5. Phân loại & Tìm kiếm ---
+    level: {
+        type: String,
+        enum: ['Sơ cấp 1', 'Sơ cấp 2', 'Trung cấp 3', 'Trung cấp 4', 'Cao cấp 5', 'Cao cấp 6'],
+        required: true
+    },
+    tags: [{ type: String, trim: true }],
+    
+    // --- 6. Quản lý hệ thống ---
+    createdBy: { type: Schema.Types.ObjectId, ref: 'User' },
+    isActive: { type: Boolean, default: true }
+
 
 }, { 
     timestamps: true,

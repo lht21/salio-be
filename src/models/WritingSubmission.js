@@ -60,7 +60,9 @@ const writingSubmissionSchema = new Schema({
         grammarErrors: [{
             error: { type: String },
             correction: { type: String },
-            explanation: { type: String }
+            explanation: { type: String },
+            startIndex: { type: Number }, // Thêm cái này
+            endIndex: { type: Number }    // Thêm cái này
         }]
     },
     

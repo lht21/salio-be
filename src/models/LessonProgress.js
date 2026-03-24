@@ -1,102 +1,82 @@
 import mongoose from 'mongoose';
 const Schema = mongoose.Schema;
 
-// 1. Schema trạng thái Từ vựng (Giữ nguyên vì có logic riêng 'mastered')
-const vocabularyProgressSchema = new mongoose.Schema({
-  vocabularyId: { type: mongoose.Schema.Types.ObjectId, ref: 'Vocabulary' },
-  status: { 
-    type: String, 
-    enum: ['unlearned', 'learning', 'mastered'], 
-    default: 'unlearned' 
-  },
-  lastReviewed: { type: Date, default: Date.now }
+const sectionProgressSchema = new Schema({
+    isUnlocked: { type: Boolean, default: false },
+    progress: { type: Number, default: 0 },
+    totalItems: { type: Number, default: 0 },
+    completedCount: { type: Number, default: 0 },
+    items: [{
+        itemId: { type: Schema.Types.ObjectId, required: true },
+        status: { type: String, enum: ['locked', 'learning', 'completed'], default: 'locked' },
+        score: { type: Number, default: 0 }
+    }]
 }, { _id: false });
 
-// 2. Schema trạng thái Bài tập chung (Reading, Listening, Writing, Speaking)
-// Dùng chung schema này để code gọn gàng hơn
-const exerciseStatusSchema = new Schema({
-  exerciseId: { type: Schema.Types.ObjectId, required: true }, // ID của bài tập (Reading/Listening...)
-  score: { type: Number, default: 0 }, // Điểm số (0-100)
-  isCompleted: { type: Boolean, default: false },
-  completedAt: { type: Date }
-}, { _id: false });
-
-// 3. Main Schema
 const lessonProgressSchema = new Schema({
-  user: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-  lesson: { type: Schema.Types.ObjectId, ref: 'Lesson', required: true },
-
-  // --- CHI TIẾT TRẠNG THÁI (Mảng lưu lịch sử từng bài) ---
-  vocabularyStatus: [vocabularyProgressSchema],
-  readingStatus: [exerciseStatusSchema],   // Lưu chi tiết từng bài đọc
-  listeningStatus: [exerciseStatusSchema], // Lưu chi tiết từng bài nghe
-  writingStatus: [exerciseStatusSchema],   // (Dự phòng cho tương lai)
-  speakingStatus: [exerciseStatusSchema],  // (Dự phòng cho tương lai)
-
-  // --- ĐIỂM SỐ TIẾN ĐỘ (0-100) ---
-  vocabularyProgress: { type: Number, default: 0 },
-  grammarProgress: { type: Number, default: 0 },
-  
-  // Các trường dưới đây sẽ được TỰ ĐỘNG TÍNH TOÁN trong middleware
-  readingProgress: { type: Number, default: 0 },
-  listeningProgress: { type: Number, default: 0 },
-  writingProgress: { type: Number, default: 0 },
-  speakingProgress: { type: Number, default: 0 },
-
-  // --- TỔNG QUAN ---
-  overallProgress: { type: Number, default: 0 },
-  isCompleted: { type: Boolean, default: false },
-
-  // --- KHÓA & TRUY CẬP ---
-  unlocked: { type: Boolean, default: false },
-  unlockDate: { type: Date },
-  lastAccessed: { type: Date, default: Date.now }
+    user: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    lesson: { type: Schema.Types.ObjectId, ref: 'Lesson', required: true },
+    isUnlocked: { type: Boolean, default: false },
+    
+    finalTestStatus: {
+        isPassed: { type: Boolean, default: false },
+        highestScore: { type: Number, default: 0 },
+        attempts: { type: Number, default: 0 }
+    },
+    overallProgress: { type: Number, default: 0 },
+    isCompleted: { type: Boolean, default: false },
+    resumePoint: {
+        section: { type: String, enum: ['vocabulary', 'grammar', 'listening', 'speaking', 'reading', 'writing'] },
+        itemId: { type: Schema.Types.ObjectId },
+        title: { type: String }
+    },
+    sections: {
+        vocabulary: { type: sectionProgressSchema, default: () => ({ isUnlocked: true }) },
+        grammar: { type: sectionProgressSchema, default: () => ({}) },
+        listening: { type: sectionProgressSchema, default: () => ({}) },
+        speaking: { type: sectionProgressSchema, default: () => ({}) },
+        reading: { type: sectionProgressSchema, default: () => ({}) },
+        writing: { type: sectionProgressSchema, default: () => ({}) }
+    },
+    lastAccessed: { type: Date, default: Date.now }
 }, { timestamps: true });
 
-// ---------------------------------------------------------
-// 🧮 Middleware tự động tính toán
-// ---------------------------------------------------------
 lessonProgressSchema.pre('save', function (next) {
-  
-  // 1. Tự động tính Reading Progress (Trung bình cộng các bài đã làm)
-  if (this.readingStatus && this.readingStatus.length > 0) {
-    const totalScore = this.readingStatus.reduce((sum, item) => sum + item.score, 0);
-    this.readingProgress = Math.round(totalScore / this.readingStatus.length);
-  }
+    if (this.finalTestStatus.isPassed === true) {
+        this.overallProgress = 100;
+        this.isCompleted = true;
+        const keys = ['vocabulary', 'grammar', 'listening', 'speaking', 'reading', 'writing'];
+        keys.forEach(key => {
+            if (this.sections[key]) this.sections[key].isUnlocked = true;
+        });
+        return next();
+    }
 
-  // 2. Tự động tính Listening Progress
-  if (this.listeningStatus && this.listeningStatus.length > 0) {
-    const totalScore = this.listeningStatus.reduce((sum, item) => sum + item.score, 0);
-    this.listeningProgress = Math.round(totalScore / this.listeningStatus.length);
-  }
+    const sections = this.sections;
+    const keys = ['vocabulary', 'grammar', 'listening', 'speaking', 'reading', 'writing'];
+    let totalProgress = 0, activeSections = 0;
 
-  // 3. Tự động tính Writing/Speaking (Nếu có logic tương tự)
-  if (this.writingStatus && this.writingStatus.length > 0) {
-    const totalScore = this.writingStatus.reduce((sum, item) => sum + item.score, 0);
-    this.writingProgress = Math.round(totalScore / this.writingStatus.length);
-  }
-  
-  // 4. Tính Overall Progress
-  const parts = [
-    this.vocabularyProgress,
-    this.grammarProgress,
-    this.listeningProgress,
-    this.speakingProgress,
-    this.readingProgress,
-    this.writingProgress
-  ];
+    keys.forEach(key => {
+        const section = sections[key];
+        if (section && section.totalItems > 0) {
+            section.progress = Math.round((section.completedCount / section.totalItems) * 100);
+            totalProgress += section.progress;
+            activeSections++;
 
-  // Chỉ tính trung bình các phần có điểm (hoặc tính tất cả tùy logic của bạn)
-  // Ở đây tôi giữ logic cũ: chia đều cho các phần hợp lệ
-  // Tuy nhiên, logic chuẩn LMS thường chia cố định cho 6 phần. 
-  // Code dưới đây chia cho số phần có giá trị khác null/undefined.
-  const validParts = parts.filter(v => v !== null && v !== undefined);
-  const average = validParts.length ? validParts.reduce((a, b) => a + b, 0) / validParts.length : 0;
-  
-  this.overallProgress = Math.round(average);
-  this.isCompleted = this.overallProgress >= 100;
+            if (section.progress === 100) {
+                const nextKey = keys[keys.indexOf(key) + 1];
+                if (nextKey && sections[nextKey].totalItems > 0) {
+                    sections[nextKey].isUnlocked = true;
+                }
+            }
+        }
+    });
 
-  next();
+    if (activeSections > 0) this.overallProgress = Math.round(totalProgress / activeSections);
+    if (this.overallProgress === 100) this.isCompleted = true;
+    next();
 });
+
+lessonProgressSchema.index({ user: 1, lesson: 1 }, { unique: true });
 
 export default mongoose.model('LessonProgress', lessonProgressSchema);

@@ -2,39 +2,38 @@ import mongoose from 'mongoose';
 const Schema = mongoose.Schema;
 
 const subscriptionPlanSchema = new Schema({
-    name: { type: String, required: true }, // "Gói Premium 1 tháng"
+    // --- 1. Thông tin hiển thị ---
+    name: { type: String, required: true }, // VD: "Salio Master TOPIK 6 Tháng"
+    description: { type: String },
+    
+    // Phân loại gói để App dễ hiển thị UI
     type: {
         type: String,
-        enum: ['premium_monthly', 'premium_quarterly', 'premium_yearly', 'exam_package'],
+        enum: ['premium_monthly', 'premium_quarterly', 'premium_yearly', 'lifetime'],
         required: true
     },
-    price: { type: Number, required: true },
-    originalPrice: { type: Number }, // Giá gốc (nếu có khuyến mãi)
-    currency: { type: String, default: 'VND' },
-    duration: { type: Number, required: true }, // Thời hạn (ngày)
     
-    // Tính năng
+    // --- 2. Giá cả & Khuyến mãi ---
+    price: { type: Number, required: true }, // Giá bán thực tế (VND)
+    originalPrice: { type: Number }, // Giá gốc để gạch ngang hiển thị % giảm giá
+    durationDays: { type: Number, required: true }, // VD: 30, 90, 365
+    
+    // --- 3. VŨ KHÍ SÁT THỦ: Tích hợp App Store / Google Play ---
+    // ID của gói cước bạn đăng ký trên trang quản lý của Apple/Google
+    appleProductId: { type: String },  // VD: "com.salio.premium.1month"
+    googleProductId: { type: String }, // VD: "salio_premium_1m"
+    
+    // --- 4. Quyền lợi (Features) ---
     features: {
         unlimitedLessons: { type: Boolean, default: true },
         unlimitedExams: { type: Boolean, default: true },
-        premiumContent: { type: Boolean, default: true },
-        downloadMaterials: { type: Boolean, default: true },
-        personalCoach: { type: Boolean, default: false },
-        offlineAccess: { type: Boolean, default: false }
+        aiWongoji: { type: Boolean, default: true } // Tính năng AI chấm điểm
     },
+    featuresList: [{ type: String }], // Mảng các gạch đầu dòng để vẽ lên UI
     
-    // Giới hạn
-    limits: {
-        maxExamsPerMonth: { type: Number, default: 0 }, // 0 = unlimited
-        maxDownloadsPerMonth: { type: Number, default: 10 }
-    },
-    
-    // Hiển thị
+    // --- 5. Quản lý hệ thống ---
     isActive: { type: Boolean, default: true },
-    isPopular: { type: Boolean, default: false },
-    description: { type: String },
-    featuresList: [{ type: String }] // Danh sách tính năng để hiển thị
-
+    isPopular: { type: Boolean, default: false } // Để gắn huy hiệu "Được mua nhiều nhất"
 }, { timestamps: true });
 
 export default mongoose.model('SubscriptionPlan', subscriptionPlanSchema);

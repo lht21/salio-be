@@ -1,48 +1,37 @@
 import mongoose from 'mongoose';
 const Schema = mongoose.Schema;
+import { questionSchema } from './schemas/question.schema.js';
 
-// Schema cho câu hỏi
-const listeningQuestionSchema = new Schema({
-    question: { type: String, required: true },
-    options: [{ type: String, required: true }], // Mảng 4 string
-    answer: { type: Number, required: true },    // Index 0-3
-    explanation: { type: String, default: '' }
-}, { _id: true }); // Giữ _id để frontend dùng làm key
 
 // Schema chính
 const listeningSchema = new Schema({
-    title: { type: String, required: true },
-    audioUrl: { type: String, required: true },
-    transcript: { type: String, required: true },
-    translation: { type: String, default: '' },
+    title: { type: String, required: true, trim: true },
+    audioUrl: { type: String, required: true }, // S3 hoặc Cloudinary URL
+    duration: { type: Number, default: 0 },     // Tổng thời lượng (giây)
+
+    // 2. VŨ KHÍ SÁT THỦ: Transcript phân rã theo Timestamps
+    scripts: [{
+        startTime: { type: Number, required: true }, // Giây bắt đầu (VD: 2.5)
+        endTime: { type: Number, required: true },   // Giây kết thúc (VD: 5.0)
+        korean: { type: String, required: true, trim: true },
+        vietnamese: { type: String, required: true, trim: true }
+    }],
     
+    // 3. Bài tập đính kèm
+    questions: [questionSchema],
+    
+    // 4. Phân loại & Tìm kiếm
     level: {
         type: String,
-        // Enum phải khớp với value trong <select> của Modal
         enum: ['Sơ cấp 1', 'Sơ cấp 2', 'Trung cấp 3', 'Trung cấp 4', 'Cao cấp 5', 'Cao cấp 6'],
         required: true
     },
-    lesson: { type: Schema.Types.ObjectId, ref: 'Lesson' },
-
-    duration: { type: Number, default: 0 }, // Thời lượng (giây)
-    questions: [listeningQuestionSchema],
+   
+    tags: [{ type: String, trim: true }], // VD: ['Giao tiếp', 'Bệnh viện', 'Kính ngữ']
     
-    // Các trường quản lý
-    author: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-    lesson: { type: Schema.Types.ObjectId, ref: 'Lesson', default: null }, // Optional nếu bài nghe ko thuộc lesson cụ thể
-    isActive: { type: Boolean, default: true },
-    
-    // Thống kê (Giữ nguyên logic của bạn)
-    playCount: { type: Number, default: 0 },
-    attemptCount: { type: Number, default: 0 },
-    averageScore: { type: Number, default: 0 },
-    
-    difficulty: {
-        type: String,
-        enum: ['Dễ', 'Trung bình', 'Khó'],
-        default: 'Trung bình'
-    },
-    tags: [{ type: String }]
+    // 5. Quản lý hệ thống
+    createdBy: { type: Schema.Types.ObjectId, ref: 'User' },
+    isActive: { type: Boolean, default: true }
 }, { 
     timestamps: true,
     toJSON: { virtuals: true }
@@ -50,21 +39,4 @@ const listeningSchema = new Schema({
 
 const Listening = mongoose.model('Listening', listeningSchema);
 
-// Schema Progress (Giữ nguyên logic của bạn)
-const listeningProgressSchema = new Schema({
-    user: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-    listening: { type: Schema.Types.ObjectId, ref: 'Listening', required: true },
-    lesson: { type: Schema.Types.ObjectId, ref: 'Lesson' }, // Có thể null
-    score: { type: Number, default: 0 },
-    answers: [{
-        questionId: { type: Schema.Types.ObjectId },
-        selectedAnswer: { type: Number },
-        isCorrect: { type: Boolean }
-    }],
-    completed: { type: Boolean, default: false }
-}, { timestamps: true });
-
-const ListeningProgress = mongoose.model('ListeningProgress', listeningProgressSchema);
-
 export default Listening;
-export { ListeningProgress };

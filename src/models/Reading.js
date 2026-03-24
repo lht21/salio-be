@@ -1,61 +1,38 @@
 import mongoose from 'mongoose';
 const Schema = mongoose.Schema;
+import { questionSchema } from './schemas/question.schema.js';
 
-const readingQuestionSchema = new Schema({
-    _id: { type: Schema.Types.ObjectId, auto: true},
-    question: { type: String, required: true },
-    options: [{ type: String, required: true }],
-    answer: { type: Number, required: true },
-    explanation: { type: String }
-}, { 
-    _id: true, 
-    id: false 
-
- });
 
 const readingSchema = new Schema({
-    title: { type: String, required: true },
-    content: { type: String, required: true },
-    translation: { type: String, required: true },
+    // --- Nội dung Đọc hiểu ---
+    title: { type: String, required: true, trim: true },
+    content: { type: String, required: true }, // Đoạn văn tiếng Hàn
+    translation: { type: String }, // Bản dịch tiếng Việt (có thể null nếu là bài thi khó)
     
+    // --- Nhúng danh sách câu hỏi linh hoạt ---
+    questions: [questionSchema],
+    
+    // --- Phân loại & Meta ---
     level: {
         type: String,
-        enum: ['Sơ cấp 1', 'Sơ cấp 2', 'Trung cấp 1', 'Trung cấp 2', 'Cao cấp'],
+        enum: ['Sơ cấp 1', 'Sơ cấp 2', 'Trung cấp 3', 'Trung cấp 4', 'Cao cấp 5', 'Cao cấp 6'],
         required: true
     },
-
-    questions: [readingQuestionSchema],
-    
     difficulty: {
         type: String,
         enum: ['Dễ', 'Trung bình', 'Khó'],
         default: 'Trung bình'
     },
+    tags: [{ type: String, trim: true }], // VD: ['Văn hóa', 'Báo chí', 'Biểu đồ']
     
-    author: { 
-        type: Schema.Types.ObjectId, 
-        ref: 'User', 
-        required: false 
-    },
-    
-    lesson: { 
-        type: Schema.Types.ObjectId, 
-        ref: 'Lesson',
-        required: false 
-    },
-    
-    // Các field thống kê - không bắt buộc
-    viewCount: { type: Number, default: 0 },
-    attemptCount: { type: Number, default: 0 },
-    averageScore: { type: Number, default: 0 },
-    successRate: { type: Number, default: 0 },
-    
-    // Metadata tùy chọn
-    isActive: { type: Boolean, default: true },
-    isPublic: { type: Boolean, default: false },
+    // --- Các thông số tự động tính toán ---
     wordCount: { type: Number, default: 0 },
-    estimatedReadingTime: { type: Number, default: 0 },
-    tags: [{ type: String }]
+    estimatedReadingTime: { type: Number, default: 0 }, // Tính bằng phút
+    
+    // --- Quản lý hệ thống ---
+    createdBy: { type: Schema.Types.ObjectId, ref: 'User' },
+    isActive: { type: Boolean, default: true }
+
 }, { 
     timestamps: true,
     toJSON: { virtuals: true }

@@ -2,97 +2,58 @@ import mongoose from 'mongoose';
 const Schema = mongoose.Schema;
 
 const writingSchema = new Schema({
-    // Basic information
-    title: { type: String, required: true },
+     title: { type: String, required: true, trim: true },
     type: {
         type: String,
-        enum: ['paragraph', 'email', 'sentence', 'story', 'essay', 'letter', 'description'],
-        default: 'paragraph'
+        enum: [
+            'sentence_completion', // Câu 51, 52 (Điền vào chỗ trống)
+            'graph_analysis',      // Câu 53 (Phân tích biểu đồ - 200~300 chữ)
+            'essay_writing',       // Câu 54 (Nghị luận xã hội - 600~700 chữ)
+            'free_writing'         // Luyện viết tự do
+        ],
+        required: true
     },
-    prompt: { type: String, required: true },
-    instruction: { type: String },
-    lesson: { type: Schema.Types.ObjectId, ref: 'Lesson' },
-    // Word requirements
-    minWords: { type: Number, default: 50 },
-    maxWords: { type: Number },
-    targetWords: { type: Number },
+    prompt: { type: String, required: true }, // Đề bài chính
+    instruction: { type: String }, // Hướng dẫn phụ (VD: Không dùng kính ngữ)
+    attachedImage: { type: String }, // (RẤT QUAN TRỌNG) Link ảnh biểu đồ cho câu 53
     
-    // Level and difficulty
+    // --- 2. Ràng buộc Lưới Wongoji & Thời gian ---
+    wordLimit: {
+        min: { type: Number, default: 200 },
+        max: { type: Number, default: 300 }
+    },
+    timeLimit: { type: Number, default: 1800 }, // Tính bằng giây (VD: 30 phút)
+    
+    // --- 3. Scaffolding (Hỗ trợ người học) ---
+    hints: {
+        vocabulary: [{ type: String }], // Gợi ý từ vựng
+        grammar: [{ type: String }],    // Gợi ý ngữ pháp nên dùng
+        outline: { type: String }       // Gợi ý dàn ý (Mở bài, Thân bài, Kết bài)
+    },
+    
+    // --- 4. Dữ liệu mớm cho AI (AI Evaluation Config) ---
+    aiConfig: {
+        sampleAnswer: { type: String }, // Bài mẫu điểm tối đa để AI tham chiếu
+        focusPoints: [{ type: String }] // Các tiêu chí AI BẮT BUỘC phải soi (VD: "Phải có từ 늘어나다", "Đuôi câu -는다")
+    },
+    
+    // --- 5. Phân loại & Quản lý ---
     level: {
         type: String,
         enum: ['Sơ cấp 1', 'Sơ cấp 2', 'Trung cấp 3', 'Trung cấp 4', 'Cao cấp 5', 'Cao cấp 6'],
         required: true
     },
-    difficulty: {
-        type: String,
-        enum: ['Dễ', 'Trung bình', 'Khó'],
-        default: 'Trung bình'
-    },
+    tags: [{ type: String, trim: true }], // VD: ['TOPIK II', 'Câu 53', 'Biểu đồ tròn']
     
-    // Content support - THÊM CÁC TRƯỜNG NÀY ĐỂ KHỚP VỚI MOCK DATA
-    wordHint: [{ type: String }],
-    grammarHint: [{ type: String }],
-    structureHint: { type: String },
-    
-    // Sample content - THÊM CÁC TRƯỜNG NÀY
-    sampleAnswer: { type: String },
-    sampleTranslation: { type: String },
-    sampleWordCount: { type: Number },
-    
-    // Time management
-    estimatedTime: { type: Number, default: 30 },
-    timeLimit: { type: Number },
-       
-    // Statistics
-    attemptCount: { type: Number, default: 0 },
-    averageScore: { type: Number, default: 0 },
-    completionRate: { type: Number, default: 0 },
-    averageWordCount: { type: Number, default: 0 },
-    
-    // Status and metadata
-    isActive: { type: Boolean, default: true },
-    isPublic: { type: Boolean, default: false },
-    author: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-    
-    // Evaluation criteria
-    evaluationCriteria: {
-        grammarWeight: { type: Number, default: 25 },
-        vocabularyWeight: { type: Number, default: 25 },
-        structureWeight: { type: Number, default: 20 },
-        contentWeight: { type: Number, default: 20 },
-        coherenceWeight: { type: Number, default: 10 }
-    },
-    
-    // Tags for search and organization
-    tags: [{ type: String }]
+    createdBy: { type: Schema.Types.ObjectId, ref: 'User' },
+    isActive: { type: Boolean, default: true }
+
 }, { 
     timestamps: true,
-    toJSON: { virtuals: true }
 });
 
-// Virtuals giữ nguyên
-writingSchema.virtual('wordRange').get(function() {
-    if (this.minWords && this.maxWords) {
-        return `${this.minWords}-${this.maxWords} từ`;
-    }
-    return `Tối thiểu ${this.minWords} từ`;
-});
-
-writingSchema.virtual('difficultyColor').get(function() {
-    const colors = {
-        'Dễ': 'green',
-        'Trung bình': 'yellow', 
-        'Khó': 'red'
-    };
-    return colors[this.difficulty] || 'gray';
-});
-
-// Indexes giữ nguyên
-writingSchema.index({ level: 1, difficulty: 1 });
-writingSchema.index({ type: 1 });
-writingSchema.index({ title: 'text', prompt: 'text' });
-writingSchema.index({ author: 1 });
-writingSchema.index({ lesson: 1 });
+// Index tối ưu tìm kiếm đề thi
+writingSchema.index({ type: 1, level: 1 });
 writingSchema.index({ tags: 1 });
 
 export default mongoose.model('Writing', writingSchema);
