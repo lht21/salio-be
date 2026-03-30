@@ -4,13 +4,20 @@ const Schema = mongoose.Schema;
 export const questionSchema = new Schema({
     type: { 
         type: String, 
-        enum: ['single_choice', 'multiple_choice', 'true_false', 'matching', 'fill_in_blank', 'short_answer'],
+        enum: ['single_choice', 'multiple_choice', 'true_false', 'matching', 'short_answer'],
         required: true 
     },
+    audioUrl: { type: String },
+    scripts: [{
+        startTime: { type: Number, required: true }, // Giây bắt đầu (VD: 2.5)
+        endTime: { type: Number, required: true },   // Giây kết thúc (VD: 5.0)
+        korean: { type: String, required: true, trim: true },
+        vietnamese: { type: String, required: true, trim: true }
+    }],
     questionText: { type: String, required: true },
     metadata: {
         options: [{ type: String }],
-        matchingPairs: [{ leftItem: String, rightItem: String }],
+        matchingPairs: [{ bottomItem: String, topItem: String }],
         blankCount: Number
     },
     correctAnswer: { type: Schema.Types.Mixed, required: true },

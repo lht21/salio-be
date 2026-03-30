@@ -5,9 +5,21 @@ const vocabularySchema = new Schema({
     word: { type: String, required: true, trim: true },
     meaning: { type: String, required: true, trim: true },
     isSinoKorean: { type: Boolean, default: false },
-    hanja: { type: String, trim: true },
-    sinoVietnamese: { type: String, trim: true },
-    type: { type: String, enum: ['noun', 'verb', 'adjective', 'adverb', 'pronoun', 'interjection', 'phrase'], default: 'noun' },
+    hanja: { 
+        type: String, 
+        trim: true,
+        required: function() {
+            return this.isSinoKorean === true;
+        }
+    },
+    sinoVietnamese: { 
+        type: String, 
+        trim: true,
+        required: function() {
+            return this.isSinoKorean === true; 
+        }
+    },
+    type: { type: String, enum: ['noun', 'verb', 'adjective', 'adverb' /* phó từ*/], default: 'noun' },
     pronunciationText: { type: String, trim: true },
     audioUrl: { type: String },
     examples: [{

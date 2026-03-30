@@ -12,7 +12,7 @@ const userProgressSchema = new Schema({
     savedVocabularies: [{ type: Schema.Types.ObjectId, ref: 'Vocabulary' }],
     highestMockScore: { type: Number, default: 0 },
     totalStudyTime: { type: Number, default: 0 }, // phút
-    completedLessons: [{ type: Schema.Types.ObjectId, ref: 'Lesson' }]
+    completedLessons: [{ type: Schema.Types.ObjectId, ref: 'LessonProgress' }]
   }
 }, { timestamps: true });
 

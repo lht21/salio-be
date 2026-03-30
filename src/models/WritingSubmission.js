@@ -2,154 +2,51 @@ import mongoose from 'mongoose';
 const Schema = mongoose.Schema;
 
 const writingSubmissionSchema = new Schema({
-    // Student information - ĐỔI TÊN 'student' THÀNH 'user' ĐỂ THỐNG NHẤT
     user: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     
-    // Writing exercise information
-    writing: { type: Schema.Types.ObjectId, ref: 'Writing', required: true },
-    lesson: { type: Schema.Types.ObjectId, ref: 'Lesson' },
+    // ==========================================
+    // NGUỒN 1: LUYỆN TẬP TỰ DO & BÀI HỌC (LESSON)
+    // ==========================================
+    writing: { type: Schema.Types.ObjectId, ref: 'Writing' }, // BỎ required: true
+    lesson: { type: Schema.Types.ObjectId, ref: 'Lesson' },   // Có thể null nếu luyện tự do
     
-    // Submission content
+    // ==========================================
+    // NGUỒN 2: THI THỬ TOÀN DIỆN (EXAM)
+    // ==========================================
+    examResult: { type: Schema.Types.ObjectId, ref: 'ExamResult' }, // Link tới phiên làm bài thi
+    examQuestionId: { type: String }, // VD: "53" hoặc "54" để biết đang làm câu nào trong đề
+    
+    // --- NỘI DUNG BÀI LÀM (Dùng chung cho cả 2 nguồn) ---
     content: { type: String, required: true },
-    wordCount: { type: Number, required: true },
-    charCount: { type: Number, required: true },
-    
-    // Time tracking
+    wordCount: { type: Number, default: 0 },
+    charCount: { type: Number, default: 0 },
     timeSpent: { type: Number, default: 0 },
-    submittedAt: { type: Date, default: Date.now },
     
-    // Draft management
-    isDraft: { type: Boolean, default: false },
-    draftSavedAt: { type: Date },
-    
-    // Submission status - THÊM TRẠNG THÁI 'pending' ĐỂ KHỚP MOCK DATA
+    // --- KẾT QUẢ AI CHẤM (Dùng chung) ---
     status: {
         type: String,
-        enum: ['draft', 'submitted', 'pending', 'evaluated', 'returned', 'resubmitted'],
-        default: 'submitted'
+        enum: ['draft', 'pending_ai', 'evaluated', 'ai_failed'],
+        default: 'draft'
     },
-    
-    // Evaluation data
     evaluation: {
-        score: { type: Number, min: 0, max: 10 },
-        grammar: { type: Number, min: 0, max: 10 },
-        vocabulary: { type: Number, min: 0, max: 10 },
-        structure: { type: Number, min: 0, max: 10 },
-        content: { type: Number, min: 0, max: 10 },
-        coherence: { type: Number, min: 0, max: 10 },
-        
-        feedback: { type: String },
-        corrections: { type: String },
-        suggestions: { type: String },
-        
-        // Detailed analysis
-        strengths: [{ type: String }],
-        areasForImprovement: [{ type: String }],
-        commonErrors: [{ 
-            type: { type: String },
-            description: { type: String },
-            correction: { type: String }
-        }],
-        
-        evaluatedBy: { type: Schema.Types.ObjectId, ref: 'User' },
-        evaluatedAt: { type: Date },
-        
-        // AI analysis
-        aiScore: { type: Number },
+        totalScore: { type: Number },
         aiFeedback: { type: String },
         grammarErrors: [{
             error: { type: String },
             correction: { type: String },
             explanation: { type: String },
-            startIndex: { type: Number }, // Thêm cái này
-            endIndex: { type: Number }    // Thêm cái này
+            startIndex: { type: Number },
+            endIndex: { type: Number }
         }]
-    },
-    
-    // Resubmission data
-    resubmission: {
-        originalSubmission: { type: Schema.Types.ObjectId, ref: 'WritingSubmission' },
-        reason: { type: String },
-        improvements: { type: String },
-        resubmittedAt: { type: Date }
-    },
-    
-    // Metadata
-    lastAccessed: { type: Date, default: Date.now },
-    ipAddress: { type: String }
-}, { 
-    timestamps: true,
-    toJSON: { virtuals: true }
-});
+    }
+}, { timestamps: true });
 
-// Virtuals giữ nguyên
+// Tự động kiểm tra tính toàn vẹn dữ liệu (Chỉ được phép thuộc Nguồn 1 HOẶC Nguồn 2)
 writingSubmissionSchema.pre('validate', function(next) {
-    if (this.isModified('content') || this.isNew) {
-        const content = this.content || '';
-        const words = content.trim() ? content.trim().split(/\s+/).length : 0;
-        const characters = content.length;
-        
-        // Gán giá trị vào field
-        this.wordCount = words;
-        this.charCount = characters;
+    if (!this.writing && !this.examResult) {
+        next(new Error('Bài nộp phải thuộc về một bài Luyện viết (Writing) HOẶC một Kỳ thi (ExamResult).'));
     }
-    
-    // Tính điểm trung bình nếu có
-    if (this.isModified('evaluation') && this.evaluation) {
-        const { grammar, vocabulary, structure, content, coherence } = this.evaluation;
-        if (grammar !== undefined && vocabulary !== undefined && structure !== undefined && content !== undefined && coherence !== undefined) {
-            this.evaluation.score = (grammar + vocabulary + structure + content + coherence) / 5;
-        }
-    }
-    
     next();
 });
-
-
-writingSubmissionSchema.virtual('scoreLabel').get(function() {
-    if (!this.evaluation.score) return 'Chưa chấm';
-    const score = this.evaluation.score;
-    if (score >= 9) return 'Xuất sắc';
-    if (score >= 8) return 'Rất tốt';
-    if (score >= 7) return 'Tốt';
-    if (score >= 6) return 'Khá';
-    if (score >= 5) return 'Trung bình';
-    return 'Cần cải thiện';
-});
-
-writingSubmissionSchema.virtual('wordCountStatus').get(function() {
-    const writing = this.populated('writing') || this.writing;
-    if (!writing || !writing.minWords) return 'unknown';
-    
-    if (this.wordCount < writing.minWords) return 'below';
-    if (writing.maxWords && this.wordCount > writing.maxWords) return 'above';
-    return 'good';
-});
-
-// Pre-save middleware giữ nguyên
-writingSubmissionSchema.pre('save', function(next) {
-    if (this.isModified('content')) {
-        const words = this.content.trim() ? this.content.trim().split(/\s+/).length : 0;
-        const characters = this.content.length;
-        this.wordCount = words;
-        this.charCount = characters;
-    }
-    
-    if (this.isModified('evaluation') && this.evaluation) {
-        const { grammar, vocabulary, structure, content, coherence } = this.evaluation;
-        if (grammar && vocabulary && structure && content && coherence) {
-            this.evaluation.score = (grammar + vocabulary + structure + content + coherence) / 5;
-        }
-    }
-    
-    next();
-});
-
-// Indexes - CẬP NHẬT 'student' THÀNH 'user'
-writingSubmissionSchema.index({ user: 1, writing: 1 });
-writingSubmissionSchema.index({ writing: 1, status: 1 });
-writingSubmissionSchema.index({ user: 1, submittedAt: -1 });
-writingSubmissionSchema.index({ 'evaluation.evaluatedBy': 1 });
-writingSubmissionSchema.index({ status: 1, submittedAt: -1 });
 
 export default mongoose.model('WritingSubmission', writingSubmissionSchema);

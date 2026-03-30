@@ -5,8 +5,6 @@ const Schema = mongoose.Schema;
 const questionGroupSchema = new Schema({
     instruction: { type: String, required: true },
     passage: { type: String },
-    audioUrl: { type: String },
-    imageUrl: { type: String },
     questions: [questionSchema]
 }, { _id: false });
 

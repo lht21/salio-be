@@ -16,7 +16,7 @@ const lessonSchema = new Schema({
     reading: [{ type: Schema.Types.ObjectId, ref: 'Reading' }],
     writing: [{ type: Schema.Types.ObjectId, ref: 'Writing' }],
     
-    finalTest: { type: Schema.Types.ObjectId, ref: 'Exam' },
+    finalTest: { type: Schema.Types.ObjectId, ref: 'Quiz' },
     isPremium: { type: Boolean, default: false },
     estimatedDuration: { type: Number, default: 60 },
     isPublished: { type: Boolean, default: false },
