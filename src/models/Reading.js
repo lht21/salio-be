@@ -72,7 +72,6 @@ readingSchema.pre('save', function(next) {
 // Index cho performance
 readingSchema.index({ level: 1, difficulty: 1 });
 readingSchema.index({ title: 'text', content: 'text' });
-readingSchema.index({ author: 1 });
-readingSchema.index({ lesson: 1 });
+readingSchema.index({ createdBy: 1 });
 
 export default mongoose.model('Reading', readingSchema);

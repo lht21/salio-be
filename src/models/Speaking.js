@@ -66,43 +66,7 @@ speakingSchema.virtual('estimatedCompletionTime').get(function() {
 speakingSchema.index({ level: 1 });
 speakingSchema.index({ type: 1 });
 speakingSchema.index({ title: 'text', prompt: 'text' });
-speakingSchema.index({ author: 1 });
+speakingSchema.index({ createdBy: 1 });
 speakingSchema.index({ tags: 1 });
 
-// 2. Định nghĩa Schema tiến độ (Speaking Progress) - BẠN BỊ THIẾU PHẦN NÀY
-const speakingProgressSchema = new Schema({
-    user: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-    exercise: { type: Schema.Types.ObjectId, ref: 'SpeakingExercise', required: true },
-    bestScore: { type: Number, default: 0 },
-    completed: { type: Boolean, default: false },
-    attempts: [{ 
-        score: Number, 
-        recordingUrl: String, 
-        createdAt: { type: Date, default: Date.now } 
-    }]
-}, { timestamps: true });
-
-// Middleware cho Progress
-speakingProgressSchema.pre('save', function (next) {
-  if (this.bestScore >= 80) this.completed = true;
-  next();
-});
-
-// 3. Tạo Models
-// // Sửa lỗi: dùng biến 'speakingSchema' đã định nghĩa ở trên
-// const SpeakingExercise = mongoose.model('SpeakingExercise', speakingSchema);
-
-// // Tạo Alias (Tùy chọn, nhưng nên dùng thống nhất một tên)
-// const Speaking = SpeakingExercise;
-
-// // Tạo Model Progress
-// const SpeakingProgress = mongoose.model('SpeakingProgress', speakingProgressSchema);
-
-// // 3. Export từng model riêng biệt
-// export { SpeakingExercise };
-// export { Speaking };
-// export { SpeakingProgress };
-
-// // 4. Export default
-// export default SpeakingExercise;
 export default mongoose.model('Speaking', speakingSchema);

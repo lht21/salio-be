@@ -1,3 +1,6 @@
+import mongoose from 'mongoose';
+const { Schema } = mongoose;
+
 const userProgressSchema = new Schema({
   user: { type: Schema.Types.ObjectId, ref: 'User', required: true, unique: true },
   
@@ -16,23 +19,130 @@ const userProgressSchema = new Schema({
   }
 }, { timestamps: true });
 
-// Logic tự động tính toán Streak
-userProgressSchema.methods.recordActivity = async function() {
-  const today = new Date().toISOString().split('T')[0];
-  if (this.gamification.activeDates.includes(today)) return;
-
+// ─── Virtuals ─────────────────────────────────────────────────────────────────
+ 
+/** Tổng số từ vựng đã lưu */
+userProgressSchema.virtual('statistics.savedVocabulariesCount').get(function () {
+  return this.statistics?.savedVocabularies?.length ?? 0;
+});
+ 
+/** Tổng bài học đã hoàn thành */
+userProgressSchema.virtual('statistics.completedLessonsCount').get(function () {
+  return this.statistics?.completedLessons?.length ?? 0;
+});
+ 
+// ─── Statics ──────────────────────────────────────────────────────────────────
+ 
+/**
+ * Tạo bản ghi UserProgress mặc định khi user mới đăng ký.
+ * Gọi sau khi tạo User document.
+ */
+userProgressSchema.statics.initForUser = async function (userId) {
+  const existing = await this.findOne({ user: userId });
+  if (existing) return existing;
+  return this.create({ user: userId });
+};
+ 
+// ─── Instance Methods ─────────────────────────────────────────────────────────
+ 
+/**
+ * Ghi nhận ngày học hôm nay (YYYY-MM-DD) và cập nhật streak.
+ * An toàn khi gọi nhiều lần trong cùng một ngày.
+ */
+userProgressSchema.methods.recordActiveDay = function () {
+  const today = new Date().toISOString().slice(0, 10); // "YYYY-MM-DD"
+ 
+  if (this.gamification.activeDates.includes(today)) return this; // đã ghi rồi
+ 
   this.gamification.activeDates.push(today);
-  const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
-
+ 
+  // Tính streak: kiểm tra ngày hôm qua có trong activeDates không
+  const yesterday = new Date(Date.now() - 86_400_000).toISOString().slice(0, 10);
   if (this.gamification.activeDates.includes(yesterday)) {
     this.gamification.currentStreak += 1;
-    if (this.gamification.currentStreak > this.gamification.highestStreak) {
-      this.gamification.highestStreak = this.gamification.currentStreak;
-    }
   } else {
-    this.gamification.currentStreak = 1;
+    this.gamification.currentStreak = 1; // reset
   }
-  return await this.save();
+ 
+  if (this.gamification.currentStreak > this.gamification.highestStreak) {
+    this.gamification.highestStreak = this.gamification.currentStreak;
+  }
+ 
+  return this;
 };
+ 
+/**
+ * Cộng thêm clouds (reward currency).
+ * @param {number} amount - số clouds cộng thêm (phải > 0)
+ */
+userProgressSchema.methods.addClouds = function (amount) {
+  if (amount <= 0) throw new Error('Amount phải lớn hơn 0');
+  this.gamification.clouds += amount;
+  return this;
+};
+ 
+/**
+ * Trừ clouds khi đổi thưởng.
+ * @param {number} amount
+ */
+userProgressSchema.methods.spendClouds = function (amount) {
+  if (amount <= 0) throw new Error('Amount phải lớn hơn 0');
+  if (this.gamification.clouds < amount) throw new Error('Không đủ clouds');
+  this.gamification.clouds -= amount;
+  return this;
+};
+ 
+/**
+ * Cộng thêm thời gian học (phút).
+ * @param {number} minutes
+ */
+userProgressSchema.methods.addStudyTime = function (minutes) {
+  if (minutes > 0) this.statistics.totalStudyTime += minutes;
+  return this;
+};
+ 
+/**
+ * Cập nhật điểm mock test cao nhất nếu điểm mới cao hơn.
+ * @param {number} score
+ */
+userProgressSchema.methods.updateMockScore = function (score) {
+  if (score > this.statistics.highestMockScore) {
+    this.statistics.highestMockScore = score;
+  }
+  return this;
+};
+ 
+/**
+ * Thêm từ vựng vào danh sách đã lưu (không trùng lặp).
+ * @param {ObjectId} vocabId
+ */
+userProgressSchema.methods.saveVocabulary = function (vocabId) {
+  const id = vocabId.toString();
+  const exists = this.statistics.savedVocabularies.some((v) => v.toString() === id);
+  if (!exists) this.statistics.savedVocabularies.push(vocabId);
+  return this;
+};
+ 
+/**
+ * Xoá từ vựng khỏi danh sách đã lưu.
+ * @param {ObjectId} vocabId
+ */
+userProgressSchema.methods.unsaveVocabulary = function (vocabId) {
+  const id = vocabId.toString();
+  this.statistics.savedVocabularies = this.statistics.savedVocabularies.filter(
+    (v) => v.toString() !== id
+  );
+  return this;
+};
+ 
+// ─── Post-save hook: keep activeDates from growing unbounded ──────────────────
+// Giữ tối đa 365 ngày gần nhất
+userProgressSchema.pre('save', function () {
+  if (this.isModified('gamification.activeDates')) {
+    const dates = [...new Set(this.gamification.activeDates)].sort();
+    this.gamification.activeDates = dates.slice(-365);
+  }
+
+});
 
 export default mongoose.model('UserProgress', userProgressSchema);
