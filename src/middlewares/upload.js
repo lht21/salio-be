@@ -1,73 +1,46 @@
 import multer from 'multer';
-import { CloudinaryStorage } from 'multer-storage-cloudinary';
-import { v2: cloudinary } from 'cloudinary';
-import { badRequest } from '../utils/response.js';
+import { S3Client } from '@aws-sdk/client-s3';
+import multerS3 from 'multer-s3';
+import path from 'path';
+import dotenv from 'dotenv';
 
-// ─── Cloudinary config ────────────────────────────────────────────────────────
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key:    process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
+dotenv.config();
+
+// Khởi tạo S3 client với credentials từ .env
+export const s3Client = new S3Client({
+  region: process.env.AWS_REGION,
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  },
 });
 
-// ─── Cloudinary Storage Engine ────────────────────────────────────────────────
-const storage = new CloudinaryStorage({
-  cloudinary,
-  params: async (req, file) => ({
-    folder:         'salio/avatars',
-    public_id:      `avatar_${req.user._id}`,   // 1 user = 1 file, tự ghi đè
-    overwrite:      true,
-    resource_type:  'image',
-    transformation: [
-      { width: 400, height: 400, crop: 'fill', gravity: 'face' }, // crop vuông, ưu tiên mặt
-      { quality: 'auto', fetch_format: 'auto' },                   // tự chọn WebP/AVIF
-    ],
-  }),
-});
+// Hàm kiểm tra loại file có phải là ảnh không
+const fileFilter = (req, file, cb) => {
+  const filetypes = /jpeg|jpg|png|gif|webp/;
+  const mimetype = filetypes.test(file.mimetype);
+  const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
 
-// ─── File filter ──────────────────────────────────────────────────────────────
-const fileFilter = (_req, file, cb) => {
-  const allowed = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
-  if (allowed.includes(file.mimetype)) {
-    cb(null, true);
-  } else {
-    cb(new Error('Chỉ chấp nhận ảnh JPEG, PNG hoặc WebP'), false);
+  if (mimetype && extname) {
+    return cb(null, true);
   }
+  cb(new Error('Lỗi: Chỉ cho phép tải lên file ảnh! (jpeg, jpg, png, gif, webp)'));
 };
 
-// ─── Multer instance ──────────────────────────────────────────────────────────
-const maxSizeMB = parseInt(process.env.MAX_AVATAR_SIZE_MB, 10) || 5;
-
+// Cấu hình Multer để upload lên S3
 const upload = multer({
-  storage,
-  fileFilter,
-  limits: { fileSize: maxSizeMB * 1024 * 1024 },
+  storage: multerS3({
+    s3: s3Client,
+    bucket: process.env.AWS_S3_BUCKET_NAME,
+    contentType: multerS3.AUTO_CONTENT_TYPE, // Tự động set content-type
+    key: (req, file, cb) => {
+      // Tạo tên file duy nhất: avatars/userId-timestamp.ext
+      const fileName = `avatars/${req.user._id}-${Date.now()}${path.extname(file.originalname)}`;
+      cb(null, fileName);
+    },
+  }),
+  limits: { fileSize: 1024 * 1024 * 5 }, // Giới hạn kích thước file 5MB
+  fileFilter: fileFilter,
 });
 
-// ─── Middleware: upload single avatar ─────────────────────────────────────────
-const uploadAvatar = (req, res, next) => {
-  upload.single('avatar')(req, res, (err) => {
-    if (err instanceof multer.MulterError) {
-      if (err.code === 'LIMIT_FILE_SIZE') {
-        return badRequest(res, `Ảnh không được vượt quá ${maxSizeMB}MB`);
-      }
-      return badRequest(res, `Lỗi upload: ${err.message}`);
-    }
-    if (err) return badRequest(res, err.message);
-    if (!req.file) return badRequest(res, 'Vui lòng cung cấp file ảnh (field name: avatar)');
-    next();
-  });
-};
-
-// ─── Xoá ảnh cũ trên Cloudinary (gọi khi cần xoá thủ công) ──────────────────
-// Vì public_id cố định theo userId, Cloudinary tự ghi đè nên thường không cần gọi hàm này.
-// Dùng khi user xoá tài khoản.
-const deleteAvatar = async (userId) => {
-  try {
-    await cloudinary.uploader.destroy(`salio/avatars/avatar_${userId}`);
-  } catch (e) {
-    console.warn('[Cloudinary] Could not delete avatar:', e.message);
-  }
-};
-
-export { uploadAvatar, deleteAvatar };
+export default upload;

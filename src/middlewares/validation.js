@@ -94,15 +94,18 @@ const updateProfileRules = [
   body('preferences.theme')
     .optional()
     .isIn(['light', 'dark']).withMessage('Giao diện phải là light hoặc dark'),
+  body('preferences.language')
+    .optional()
+    .isIn(['vi', 'ko', 'en']).withMessage('Ngôn ngữ phải là vi, ko hoặc en'),
   body('preferences.voiceGender')
     .optional()
     .isIn(['male', 'female']).withMessage('Giọng đọc phải là male hoặc female'),
-  body('preferences.notificationsEnabled')
+  body('preferences.notifications.enabled')
     .optional()
     .isBoolean().withMessage('Thông báo phải là true/false'),
-  body('preferences.dailyGoalMinutes')
+  body('preferences.notifications.dailyReminderTime')
     .optional()
-    .isInt({ min: 5, max: 120 }).withMessage('Mục tiêu hàng ngày từ 5–120 phút'),
+    .matches(/^([01]\d|2[0-3]):([0-5]\d)$/).withMessage('Thời gian nhắc nhở phải có định dạng HH:mm'),
   validate,
 ];
 

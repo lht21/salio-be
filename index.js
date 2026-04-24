@@ -11,8 +11,8 @@ import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url'; // THÊM DÒNG NÀY
 
-// import authRoutes from './src/routes/authRoutes.js';
-// import userRoutes from './src/routes/userRoutes.js'
+import authRoutes from './src/routes/authRoutes.js';
+import userRoutes from './src/routes/userRoutes.js';
 // import auditLogsRoutes from './src/routes/auditLogsRoutes.js'
 // import contentApprovalRoutes from './src/routes/contentApprovalRoutes.js'
 // import newsRoutes from './src/routes/newsRoutes.js'
@@ -23,8 +23,6 @@ import { fileURLToPath } from 'url'; // THÊM DÒNG NÀY
 // import paymentRoutes from './src/routes/paymentRoutes.js'
 // import supportRoutes from './src/routes/supportRoutes.js'
 // import dashboardRoutes from './src/routes/dashboardRoutes.js'
-import gradingRoutes from './src/routes/gradingRoutes.js' // THÊM ROUTE CHẤM ĐIỂM
-import authRoutes from './src/routes/authRoutes.js'
 // import postRoutes from './routes/postRoutes.js';
 // import reputationRoutes from './routes/reputationRoutes.js';
 // import joinRequestRoutes from './routes/joinRequestRoutes.js'; // Thêm route mới
@@ -73,8 +71,8 @@ mongoose.connect(mongoURI)
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Định tuyến API
-// app.use('/api/auth', authRoutes);
-// app.use('/api/user', userRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/v1/users', userRoutes);
 // app.use('/api/audit-logs', auditLogsRoutes);
 // app.use('/api/content', contentApprovalRoutes)
 // app.use('/api/news', newsRoutes)
@@ -100,7 +98,6 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 // app.use('/api/lesson-progress', lessonProgressRoutes)
 
 // app.use('/api/grade', gradingRoutes) // Tạm thời vô hiệu hóa để chỉ test auth
-app.use('/api/auth', authRoutes)
 
 // app.use('/api/exams', examRoutes)
 
