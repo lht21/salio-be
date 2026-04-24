@@ -1,9 +1,9 @@
 import dotenv from 'dotenv';
 dotenv.config();
-console.log("🔍 MONGODB_URI =", process.env.MONGODB_URI);
+console.log("MONGODB_URI =", process.env.MONGODB_URI);
 
 import swaggerUi from 'swagger-ui-express';
-import swaggerSpec from './swagger.js'; 
+import swaggerSpec from './swagger.js';
 
 import express from 'express';
 import mongoose from 'mongoose';
@@ -42,33 +42,35 @@ import userRoutes from './src/routes/userRoutes.js';
 // Cấu hình dotenv để sử dụng các biến môi trường
 // import NewsScheduler from './src/services/newsScheduler.js';
 
-// Khởi tạo ứng dụng Express
 const app = express();
 const port = process.env.PORT || 5000;
 const mongoURI = process.env.MONGODB_URI;
 
-// Initialize news scheduler
-// const newsScheduler = new NewsScheduler();
-
 app.use(cors());
 
-// QUAN TRỌNG: Phục vụ static files từ thư mục uploads
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-
-// Middleware
-// Sử dụng express.json() để parse body của request
 app.use(express.json());
 
-// Kết nối đến MongoDB
 mongoose.connect(mongoURI)
     .then(() => console.log('Đã kết nối đến MongoDB thành công!'))
     .catch(err => console.error('Lỗi kết nối MongoDB:', err));
 
-// Route cho tài liệu API
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.use(
+    '/api-docs',
+    swaggerUi.serve,
+    swaggerUi.setup(swaggerSpec, {
+        explorer: true,
+        customSiteTitle: 'Salio API Docs',
+    })
+);
+
+app.get('/api-docs.json', (req, res) => {
+    res.setHeader('Content-Type', 'application/json');
+    res.send(swaggerSpec);
+});
 
 // Định tuyến API
 app.use('/api/auth', authRoutes);
@@ -101,11 +103,11 @@ app.use('/api/v1/users', userRoutes);
 
 // app.use('/api/exams', examRoutes)
 
-// Khởi động server lắng nghe kết nối
 app.listen(port, '0.0.0.0', () => {
     console.log(`\nServer đã sẵn sàng!`);
     console.log(`-------------------------------------------------------`);
     console.log(`Local:      http://localhost:${port}`);
+    console.log(`Swagger:    http://localhost:${port}/api-docs`);
     console.log(`Mobile/LAN: http://192.168.1.11:${port}`);
     console.log(`-------------------------------------------------------`);
 });
