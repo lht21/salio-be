@@ -1,12 +1,12 @@
 import mongoose from 'mongoose';
 const Schema = mongoose.Schema;
-import { questionSchema } from './schemas/question.schema.js';
+import { questionSchema } from '../schemas/question.schema.js';
 
 
 // Schema chính
 const listeningSchema = new Schema({
     title: { type: String, required: true, trim: true },
-    audioUrl: { type: String, required: true }, // S3 hoặc Cloudinary URL
+    audioUrl: { type: String }, // S3 hoặc Cloudinary URL
     duration: { type: Number, default: 0 },     // Tổng thời lượng (giây)
 
     // 2. VŨ KHÍ SÁT THỦ: Transcript phân rã theo Timestamps

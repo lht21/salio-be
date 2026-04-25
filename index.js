@@ -13,30 +13,12 @@ import { fileURLToPath } from 'url'; // THÊM DÒNG NÀY
 
 import authRoutes from './src/routes/authRoutes.js';
 import userRoutes from './src/routes/userRoutes.js';
-// import auditLogsRoutes from './src/routes/auditLogsRoutes.js'
-// import contentApprovalRoutes from './src/routes/contentApprovalRoutes.js'
-// import newsRoutes from './src/routes/newsRoutes.js'
-// import cultureRoutes from './src/routes/cultureRoutes.js'
-// import lessonRoutes from './src/routes/lessonRoutes.js'
-// import teacherRoutes from './src/routes/teacherRoutes.js'
-// import adminLessonRoutes from './src/routes/adminLessonRoutes.js'
-// import paymentRoutes from './src/routes/paymentRoutes.js'
-// import supportRoutes from './src/routes/supportRoutes.js'
-// import dashboardRoutes from './src/routes/dashboardRoutes.js'
-// import postRoutes from './routes/postRoutes.js';
-// import reputationRoutes from './routes/reputationRoutes.js';
-// import joinRequestRoutes from './routes/joinRequestRoutes.js'; // Thêm route mới
+import questionBankRoutes from './src/routes/questionBankRoutes.js';
+import uploadRoutes from './src/routes/uploadRoutes.js';
+import examRoutes from './src/routes/examRoutes.js';
+import practiceRoutes from './src/routes/practiceRoutes.js';
+import attemptRoutes from './src/routes/attemptRoutes.js';
 
-// import grammarRoutes from './src/routes/grammarRoutes.js'
-
-// import listeningRoutes from './src/routes/listeningRoutes.js'
-// import readingRoutes from './src/routes/readingRoutes.js'
-// import speakingRoutes from './src/routes/speakingRoutes.js'
-// import vocabularyRoutes from './src/routes/vocabularyRoutes.js'
-// import writingRoutes from './src/routes/writingRoutes.js'
-
-// import examRoutes from './src/routes/examRoutes.js'
-// import lessonProgressRoutes from './src/routes/lessonProgressRoutes.js'
 
 
 // Cấu hình dotenv để sử dụng các biến môi trường
@@ -75,16 +57,12 @@ app.get('/api-docs.json', (req, res) => {
 // Định tuyến API
 app.use('/api/auth', authRoutes);
 app.use('/api/v1/users', userRoutes);
-// app.use('/api/audit-logs', auditLogsRoutes);
-// app.use('/api/content', contentApprovalRoutes)
-// app.use('/api/news', newsRoutes)
-// app.use('/api/culture', cultureRoutes)
-// app.use('/api/lessons', lessonRoutes)
-// app.use('/api/teacher', teacherRoutes)
-// app.use('/api/admin/lessons', adminLessonRoutes)
-// app.use('/api/payment', paymentRoutes)
-// app.use('/api/support', supportRoutes)
-// app.use('/api/dashboard', dashboardRoutes)
+app.use('/api/v1/bank', questionBankRoutes);
+app.use('/api/v1/upload', uploadRoutes);
+app.use('/api/v1/exams', examRoutes);
+app.use('/api/v1/practice', practiceRoutes);
+app.use('/api/v1/attempts', attemptRoutes);
+
 
 // app.use('/api/posts', postRoutes);
 // app.use('/api/reputation', reputationRoutes);

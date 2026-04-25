@@ -1,29 +1,13 @@
 import mongoose from 'mongoose';
-import { questionSchema } from './schemas/question.schema.js';
 const Schema = mongoose.Schema;
-
-const questionGroupSchema = new Schema({
-    instruction: { type: String, required: true },
-    passage: { type: String },
-    questions: [questionSchema]
-}, { _id: false });
-
-const examWritingSchema = new Schema({
-    questionNumber: { type: Number, required: true },
-    points: { type: Number, required: true },
-    prompt: { type: String, required: true },
-    imageUrl: { type: String },
-    wordLimit: { min: Number, max: Number },
-    aiConfig: { sampleAnswer: String, focusPoints: [String] }
-}, { _id: false });
 
 const examSchema = new Schema({
     title: { type: String, required: true, trim: true },
-    examType: { type: String, enum: ['topik1', 'topik2', 'mock_test'], required: true },
+    examType: { type: String, enum: ['topik1', 'topik2', 'eps'], required: true },
     sections: {
-        listening: [questionGroupSchema],
-        reading: [questionGroupSchema],
-        writing: [examWritingSchema]
+        listening: [{ type: Schema.Types.ObjectId, ref: 'Listening' }],
+        reading: [{ type: Schema.Types.ObjectId, ref: 'Reading' }],
+        writing: [{ type: Schema.Types.ObjectId, ref: 'Writing' }]
     },
     duration: {
         listening: { type: Number, default: 60 },

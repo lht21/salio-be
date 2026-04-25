@@ -7,6 +7,7 @@ export const questionSchema = new Schema({
         enum: ['single_choice', 'multiple_choice', 'true_false', 'matching', 'short_answer'],
         required: true 
     },
+    points: { type: Number, default: 2 }, // Điểm của câu hỏi (TOPIK thường là 2-3 điểm)
     audioUrl: { type: String },
     scripts: [{
         startTime: { type: Number, required: true }, // Giây bắt đầu (VD: 2.5)
@@ -14,7 +15,7 @@ export const questionSchema = new Schema({
         korean: { type: String, required: true, trim: true },
         vietnamese: { type: String, required: true, trim: true }
     }],
-    questionText: { type: String, required: true },
+    questionText: { type: String },
     metadata: {
         options: [{ type: String }],
         matchingPairs: [{ bottomItem: String, topItem: String }],

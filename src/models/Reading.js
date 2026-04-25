@@ -1,12 +1,12 @@
 import mongoose from 'mongoose';
 const Schema = mongoose.Schema;
-import { questionSchema } from './schemas/question.schema.js';
+import { questionSchema } from '../schemas/question.schema.js';
 
 
 const readingSchema = new Schema({
     // --- Nội dung Đọc hiểu ---
     title: { type: String, required: true, trim: true },
-    content: { type: String, required: true }, // Đoạn văn tiếng Hàn
+    content: { type: String}, // Đoạn văn tiếng Hàn
     translation: { type: String }, // Bản dịch tiếng Việt (có thể null nếu là bài thi khó)
     
     // --- Nhúng danh sách câu hỏi linh hoạt ---
@@ -44,7 +44,7 @@ readingSchema.virtual('questionCount').get(function() {
 });
 
 // Pre-save middleware - TỰ ĐỘNG TÍNH TOÁN
-readingSchema.pre('save', function(next) {
+readingSchema.pre('save', async function() {
     // Tính word count từ content
     if (this.content && this.isModified('content')) {
         this.wordCount = this.content.trim().split(/\s+/).length;
@@ -56,7 +56,7 @@ readingSchema.pre('save', function(next) {
     }
     
     // Tự động set difficulty dựa trên level nếu chưa có
-    if (!this.difficulty) {
+    if (!this.difficulty && this.level) {
         if (this.level.includes('Sơ cấp')) {
             this.difficulty = 'Dễ';
         } else if (this.level.includes('Trung cấp')) {
@@ -65,8 +65,6 @@ readingSchema.pre('save', function(next) {
             this.difficulty = 'Khó';
         }
     }
-    
-    next();
 });
 
 // Index cho performance
