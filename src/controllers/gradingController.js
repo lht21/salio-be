@@ -1,14 +1,16 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
+let cachedModelName = null; // Biến lưu tạm tên model để không phải gọi API dò tìm nhiều lần
+
 // Hàm hỗ trợ gọi API có cơ chế tự động thử lại (Retry with Exponential Backoff)
 const generateWithRetry = async (model, prompt, maxRetries = 3, delayMs = 2000) => {
     for (let i = 0; i < maxRetries; i++) {
         try {
             return await model.generateContent(prompt);
         } catch (error) {
-            // Nếu lỗi 503 (quá tải) và chưa vượt quá số lần thử
-            if (error.status === 503 && i < maxRetries - 1) {
-                console.warn(`[Gemini AI] Lỗi 503 - Đang quá tải. Thử lại lần ${i + 1}/${maxRetries - 1} sau ${delayMs}ms...`);
+            // Bắt lỗi 503 (quá tải) hoặc 429 (vượt Rate Limit) và tự động chờ để thử lại
+            if ((error.status === 503 || error.status === 429) && i < maxRetries - 1) {
+                console.warn(`[Gemini AI] Lỗi ${error.status} - Quá tải hoặc vượt giới hạn. Thử lại lần ${i + 1}/${maxRetries - 1} sau ${delayMs}ms...`);
                 await new Promise(resolve => setTimeout(resolve, delayMs));
                 delayMs *= 2; // Tăng gấp đôi thời gian chờ cho lần sau
             } else {
@@ -18,18 +20,33 @@ const generateWithRetry = async (model, prompt, maxRetries = 3, delayMs = 2000) 
     }
 };
 
-export const gradeWritingTOPIK = async (req, res) => {
-    try {
-        const { topicTitle, topicDescription, userText } = req.body;
+export const evaluateWritingWithAI = async (topicTitle, topicDescription, userText) => {
+        const apiKey = process.env.GEMINI_API_KEY;
+        const genAI = new GoogleGenerativeAI(apiKey);
 
-        if (!userText || userText.trim() === '') {
-            return res.status(400).json({ message: 'Bài viết không được để trống.' });
+        // Tự động dò tìm model hợp lệ từ API Key của bạn (Chỉ chạy 1 lần đầu tiên)
+        if (!cachedModelName) {
+            try {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
+                const data = await response.json();
+                if (data && data.models) {
+                    // Tìm model đầu tiên có hỗ trợ generateContent
+                    const validModel = data.models.find(m => 
+                        m.supportedGenerationMethods?.includes("generateContent") && 
+                        (m.name.includes("gemini-1.5") || m.name.includes("gemini-1.0") || m.name.includes("gemini-pro") || m.name.includes("gemini-2"))
+                    );
+                    if (validModel) {
+                        cachedModelName = validModel.name.replace('models/', '');
+                        console.log(`[Gemini AI] Đã tự động chốt model: ${cachedModelName}`);
+                    }
+                }
+            } catch (err) {
+                console.warn("[Gemini AI] Không thể tự động dò danh sách model.");
+            }
         }
 
-        // Khởi tạo 
-        const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-        // Khuyên dùng gemini-1.5-flash (ổn định) hoặc gemini-2.0-flash
-        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+        const activeModel = cachedModelName || "gemini-1.0-pro"; // Fallback an toàn nhất
+        const model = genAI.getGenerativeModel({ model: activeModel }); 
 
         // promt
         const prompt = `
@@ -70,7 +87,19 @@ export const gradeWritingTOPIK = async (req, res) => {
         // Xử lý chuỗi trả về để đảm bảo nó là JSON hợp lệ (phòng trường hợp AI vẫn chèn markdown)
         let cleanJsonStr = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
         
-        const gradingResult = JSON.parse(cleanJsonStr);
+        return JSON.parse(cleanJsonStr);
+};
+
+export const gradeWritingTOPIK = async (req, res) => {
+    try {
+        const { topicTitle, topicDescription, userText } = req.body;
+
+        if (!userText || userText.trim() === '') {
+            return res.status(400).json({ message: 'Bài viết không được để trống.' });
+        }
+
+        // Tái sử dụng hàm Core
+        const gradingResult = await evaluateWritingWithAI(topicTitle, topicDescription, userText);
 
         return res.status(200).json({
             success: true,

@@ -36,6 +36,8 @@ const __dirname = path.dirname(__filename);
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use(express.json());
 
+
+
 mongoose.connect(mongoURI)
     .then(() => console.log('Đã kết nối đến MongoDB thành công!'))
     .catch(err => console.error('Lỗi kết nối MongoDB:', err));

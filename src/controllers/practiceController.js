@@ -4,6 +4,7 @@ import Speaking from '../models/Speaking.js';
 import ExamResult from '../models/ExamResult.js';
 import WritingSubmission from '../models/WritingSubmission.js';
 import { ok, badRequest, notFound, serverError } from '../utils/response.js';
+import { evaluateWritingWithAI } from './gradingController.js';
 
 /**
  * GET /api/v1/practice/:type/sets
@@ -228,31 +229,47 @@ export const saveAnswer = async (req, res) => {
         const { type, questionId, answer, timeSpent } = req.body;
         const userId = req.user._id;
 
-        let attempt = await ExamResult.findOne({ _id: attemptId, user: userId });
-        if (attempt) {
-            const targetArray = type === 'reading' ? attempt.readingAnswers : attempt.listeningAnswers;
-            const existingIndex = targetArray.findIndex(a => a.questionId.toString() === questionId);
-            
-            if (existingIndex !== -1) {
-                targetArray[existingIndex].userAnswer = answer;
-            } else {
-                targetArray.push({ questionId, userAnswer: answer, isCorrect: false });
+        // Xử lý riêng biệt cho môn Viết
+        if (type === 'writing') {
+            let wSubmission = await WritingSubmission.findOne({ _id: attemptId, user: userId });
+            if (wSubmission) {
+                if (answer !== undefined) wSubmission.content = answer;
+                if (timeSpent) wSubmission.timeSpent = timeSpent;
+                await wSubmission.save();
+                return ok(res, null, 'Đã lưu bài viết tạm thời');
             }
             
-            if (timeSpent) attempt.timeSpent = timeSpent;
-            await attempt.save();
-            return ok(res, null, 'Đã lưu đáp án tạm thời');
+            let attempt = await ExamResult.findOne({ _id: attemptId, user: userId });
+            if (attempt) {
+                return badRequest(res, 'Bạn đang lưu bài viết vào một phiên thi Full Exam (Chưa hỗ trợ API riêng lẻ). Vui lòng sử dụng attemptId của bài luyện viết độc lập.');
+            }
+
+            return notFound(res, 'Không tìm thấy lượt làm bài viết');
         }
 
-        let wSubmission = await WritingSubmission.findOne({ _id: attemptId, user: userId });
-        if (wSubmission) {
-            if (answer !== undefined) wSubmission.content = answer;
-            if (timeSpent) wSubmission.timeSpent = timeSpent;
-            await wSubmission.save();
-            return ok(res, null, 'Đã lưu bài viết tạm thời');
+        // Xử lý cho Trắc nghiệm (Reading / Listening)
+        if (['reading', 'listening'].includes(type)) {
+            if (!questionId) return badRequest(res, 'Thiếu questionId cho bài thi trắc nghiệm');
+            
+            let attempt = await ExamResult.findOne({ _id: attemptId, user: userId });
+            if (attempt) {
+                const targetArray = type === 'reading' ? attempt.readingAnswers : attempt.listeningAnswers;
+                const existingIndex = targetArray.findIndex(a => a.questionId.toString() === questionId);
+                
+                if (existingIndex !== -1) {
+                    targetArray[existingIndex].userAnswer = answer;
+                } else {
+                    targetArray.push({ questionId, userAnswer: answer, isCorrect: false });
+                }
+                
+                if (timeSpent) attempt.timeSpent = timeSpent;
+                await attempt.save();
+                return ok(res, null, 'Đã lưu đáp án tạm thời');
+            }
+            return notFound(res, 'Không tìm thấy lượt làm bài thi trắc nghiệm');
         }
 
-        return notFound(res, 'Không tìm thấy lượt làm bài');
+        return badRequest(res, 'Loại bài tập (type) không hợp lệ');
     } catch (error) {
         return serverError(res, 'Lỗi khi lưu đáp án: ' + error.message);
     }
@@ -342,12 +359,35 @@ export const submitAttempt = async (req, res) => {
             return ok(res, attempt, 'Nộp bài và chấm điểm tự động thành công');
         }
 
-        let wSubmission = await WritingSubmission.findOne({ _id: attemptId, user: userId });
+        let wSubmission = await WritingSubmission.findOne({ _id: attemptId, user: userId }).populate('writing');
         if (wSubmission) {
             if (wSubmission.status !== 'draft') return badRequest(res, 'Bài viết này đã được nộp');
-            wSubmission.status = 'pending_ai';
+            
+            // Lưu trạng thái đề phòng quá trình gọi AI bị timeout
+            wSubmission.status = 'pending_ai'; 
             await wSubmission.save();
-            return ok(res, wSubmission, 'Nộp bài viết thành công, đang chờ AI chấm điểm');
+
+            try {
+                // Gọi AI để chấm bài
+                const aiResult = await evaluateWritingWithAI(
+                    wSubmission.writing?.title || 'Chủ đề tự do',
+                    wSubmission.writing?.description || '',
+                    wSubmission.content
+                );
+
+                wSubmission.evaluation = {
+                    totalScore: aiResult.score,
+                    aiFeedback: aiResult.feedback,
+                    detailedCorrection: aiResult.detailedCorrection
+                };
+                wSubmission.status = 'evaluated';
+            } catch (err) {
+                wSubmission.status = 'ai_failed';
+                console.error('Lỗi khi AI chấm điểm bài viết:', err);
+            }
+
+            await wSubmission.save();
+            return ok(res, wSubmission, 'Nộp bài viết và xử lý AI thành công');
         }
 
         return notFound(res, 'Không tìm thấy lượt làm bài');
