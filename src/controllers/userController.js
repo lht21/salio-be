@@ -38,7 +38,7 @@ const getMe = async (req, res) => {
 const updateProfile = async (req, res) => {
   try {
     const userId = req.user._id;
-    const { username } = req.body;
+    const { username, avatarUrl } = req.body;
 
     const user = await User.findById(userId);
     if (!user) {
@@ -52,6 +52,24 @@ const updateProfile = async (req, res) => {
         return conflict(res, 'Tên đăng nhập đã tồn tại. Vui lòng chọn tên khác');
       }
       user.username = username;
+    }
+
+    // Xử lý nếu người dùng chọn avatar có sẵn từ App (gửi lên chuỗi dạng 'system:avatar_x')
+    if (avatarUrl && avatarUrl.startsWith('system:')) {
+      // Dọn dẹp ảnh cũ trên S3 nếu trước đó user dùng ảnh tự up
+      if (user.avatarUrl && user.avatarUrl.startsWith('http')) {
+        try {
+          const parsedUrl = new URL(user.avatarUrl);
+          const key = decodeURIComponent(parsedUrl.pathname.substring(1));
+          await s3Client.send(new DeleteObjectCommand({
+            Bucket: process.env.AWS_S3_BUCKET_NAME,
+            Key: key
+          }));
+        } catch (s3Err) {
+          console.error('Lỗi khi xóa avatar cũ trên S3:', s3Err);
+        }
+      }
+      user.avatarUrl = avatarUrl;
     }
 
     await user.save();

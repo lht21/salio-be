@@ -21,7 +21,7 @@ const vocabularySchema = new Schema({
     },
     type: { type: String, enum: ['noun', 'verb', 'adjective', 'adverb' /* phó từ*/], default: 'noun' },
     pronunciationText: { type: String, trim: true },
-    audioUrl: { type: String },
+    imageUrl: { type: String },
     examples: [{
         korean: { type: String, required: true, trim: true },
         vietnamese: { type: String, required: true, trim: true }

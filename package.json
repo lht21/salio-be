@@ -22,9 +22,11 @@
     "multer-storage-cloudinary": "^2.2.1",
     "node-cron": "^4.2.1",
     "nodemailer": "^8.0.2",
+    "read-excel-file": "^9.0.6",
     "rss-parser": "^3.13.0",
     "swagger-jsdoc": "^6.2.8",
-    "swagger-ui-express": "^5.0.1"
+    "swagger-ui-express": "^5.0.1",
+    "xlsx": "^0.18.5"
   },
   "scripts": {
     "start": "node index.js",
