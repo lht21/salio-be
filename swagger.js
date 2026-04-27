@@ -24,6 +24,16 @@ const swaggerOptions = {
         name: 'Auth',
         description: 'Các endpoint xác thực người dùng',
       },
+      { name: 'Users', description: 'Quản lý tài khoản và hồ sơ người dùng' },
+      { name: 'Question Bank', description: 'Quản lý ngân hàng câu hỏi' },
+      { name: 'Uploads', description: 'Tải file lên S3' },
+      { name: 'Exams', description: 'Quản lý đề thi' },
+      { name: 'Practice', description: 'Danh sách bài luyện tập và lịch sử làm bài' },
+      { name: 'Attempts', description: 'Theo dõi, lưu đáp án, nộp bài và xem kết quả' },
+      { name: 'Placement Test', description: 'Bài quiz đầu vào' },
+      { name: 'Grammars', description: 'Quản lý ngữ pháp và bài tập luyện ngữ pháp' },
+      { name: 'Subscriptions', description: 'Quản lý gói cước và checkout' },
+      { name: 'Payments', description: 'Quản lý thanh toán, webhook và cấp gói' },
     ],
     components: {
       securitySchemes: {
