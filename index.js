@@ -21,6 +21,7 @@ import attemptRoutes from './src/routes/attemptRoutes.js';
 import placementTestRoutes from './src/routes/placementTestRoutes.js';
 import subscriptionRoutes from './src/routes/subscriptionRoutes.js';
 import paymentRoutes from './src/routes/paymentRoutes.js';
+import grammarRoutes from './src/routes/grammarRoutes.js';
 import { startSubscriptionCron } from './src/cron/subscriptionCron.js';
 
 
@@ -71,6 +72,7 @@ app.use('/api/v1/attempts', attemptRoutes);
 app.use('/api/v1', placementTestRoutes);
 app.use('/api/v1/subscriptions', subscriptionRoutes);
 app.use('/api/v1/payments', paymentRoutes);
+app.use('/api/v1/grammars', grammarRoutes);
 
 
 // app.use('/api/posts', postRoutes);
