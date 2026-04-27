@@ -30,7 +30,24 @@ router.use(protect);
  *                 description: mp3, wav, ogg, m4a hoặc mpeg; tối đa 30MB
  *     responses:
  *       200:
- *         description: Trả về data.fileUrl
+ *         description: Trả về data.fileUrl để gắn vào audioUrl hoặc referenceAudioUrl khi tạo item trong question bank
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Tải file lên thành công
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     fileUrl:
+ *                       type: string
+ *                       example: https://salio-storage-assets.s3.ap-southeast-1.amazonaws.com/audio/example.mp3
  *       400:
  *         description: File không hợp lệ hoặc thiếu file
  *       401:
@@ -63,7 +80,24 @@ router.post('/audio', admin, uploadAudio.single('file'), uploadFile);
  *                 description: jpeg, jpg, png, gif hoặc webp; tối đa 10MB
  *     responses:
  *       200:
- *         description: Trả về data.fileUrl
+ *         description: Trả về data.fileUrl để gắn vào attachedImage khi tạo item writing
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Tải file lên thành công
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     fileUrl:
+ *                       type: string
+ *                       example: https://salio-storage-assets.s3.ap-southeast-1.amazonaws.com/images/example.png
  *       400:
  *         description: File không hợp lệ hoặc thiếu file
  *       401:
