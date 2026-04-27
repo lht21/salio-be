@@ -34,6 +34,9 @@ const swaggerOptions = {
       { name: 'Grammars', description: 'Quản lý ngữ pháp và bài tập luyện ngữ pháp' },
       { name: 'Subscriptions', description: 'Quản lý gói cước và checkout' },
       { name: 'Payments', description: 'Quản lý thanh toán, webhook và cấp gói' },
+      { name: 'Vocabularies', description: 'Quản lý kho từ vựng' },
+      { name: 'Flashcards', description: 'Quản lý bộ flashcard của người dùng' },
+      { name: 'Support', description: 'FAQ và yêu cầu hỗ trợ' },
     ],
     components: {
       securitySchemes: {

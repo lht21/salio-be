@@ -19,7 +19,7 @@ router.use(admin);
  * /api/v1/bank/{type}:
  *   get:
  *     summary: Lấy danh sách item trong question bank
- *     description: Chỉ user role admin. type chọn model tương ứng Reading, Listening, Writing hoặc Speaking. Hỗ trợ lọc theo level, difficulty, isActive và tags.
+ *     description: Chỉ user role admin. type chọn model tương ứng Reading, Listening, Writing, Speaking, Grammar hoặc Vocabulary. Hỗ trợ lọc theo level, difficulty, isActive và tags.
  *     tags: [Question Bank]
  *     security:
  *       - bearerAuth: []
@@ -29,7 +29,7 @@ router.use(admin);
  *         required: true
  *         schema:
  *           type: string
- *           enum: [reading, listening, writing, speaking]
+ *           enum: [reading, listening, writing, speaking, grammar, vocabulary]
  *       - in: query
  *         name: level
  *         schema:
@@ -71,7 +71,7 @@ router.get('/:type', getBankItems);
  *         required: true
  *         schema:
  *           type: string
- *           enum: [reading, listening, writing, speaking]
+ *           enum: [reading, listening, writing, speaking, grammar, vocabulary]
  *     requestBody:
  *       required: true
  *       content:
@@ -226,6 +226,52 @@ router.get('/:type', getBankItems);
  *                       type: string
  *                       example: "'감기약을 먹고 나서 열이 내렸다' nghĩa là 'sau khi uống thuốc cảm thì hạ sốt'."
  *           examples:
+ *             vocabulary:
+ *               summary: Vocabulary bank item - dùng cho quiz từ vựng
+ *               value:
+ *                 title: Quiz item cho từ 학생
+ *                 vocabulary: 69ef1ad4f2a6ec2f593f2eba
+ *                 questions:
+ *                   - type: single_choice
+ *                     points: 1
+ *                     questionText: "\"học sinh, sinh viên\" là từ nào trong tiếng Hàn?"
+ *                     metadata:
+ *                       options: [학생, 선생님, 의사, 회사원]
+ *                       matchingPairs: []
+ *                     correctAnswer: 학생
+ *                   - type: short_answer
+ *                     points: 1
+ *                     questionText: "Nhập nghĩa tiếng Việt của từ \"학생\"."
+ *                     metadata:
+ *                       blankCount: 1
+ *                     correctAnswer: học sinh, sinh viên
+ *                 level: Sơ cấp 1
+ *                 difficulty: Dễ
+ *                 tags: [Vocabulary, Bài 1]
+ *                 isActive: true
+ *             grammar:
+ *               summary: Grammar bank item - dùng cho quiz ngữ pháp
+ *               value:
+ *                 title: Quiz item cho ngữ pháp N입니다
+ *                 grammar: 69ef1ad4f2a6ec2f593f2eba
+ *                 questions:
+ *                   - type: single_choice
+ *                     points: 1
+ *                     questionText: "Câu nào dùng đúng cấu trúc N입니다?"
+ *                     metadata:
+ *                       options: [저는 학생입니다., 저는 학생입니까?, 저는 학생을., 저는 학생에.]
+ *                       matchingPairs: []
+ *                     correctAnswer: 저는 학생입니다.
+ *                   - type: short_answer
+ *                     points: 1
+ *                     questionText: "Điền đuôi câu: 저는 학생___."
+ *                     metadata:
+ *                       blankCount: 1
+ *                     correctAnswer: 입니다
+ *                 level: Sơ cấp 1
+ *                 difficulty: Dễ
+ *                 tags: [Grammar, Bài 1]
+ *                 isActive: true
  *             reading:
  *               summary: Reading item - nhiều dạng câu hỏi
  *               value:
@@ -374,7 +420,7 @@ router.post('/:type', createBankItem);
  *         required: true
  *         schema:
  *           type: string
- *           enum: [reading, listening, writing, speaking]
+ *           enum: [reading, listening, writing, speaking, grammar, vocabulary]
  *       - in: path
  *         name: itemId
  *         required: true
@@ -405,7 +451,7 @@ router.get('/:type/:itemId', getBankItemById);
  *         required: true
  *         schema:
  *           type: string
- *           enum: [reading, listening, writing, speaking]
+ *           enum: [reading, listening, writing, speaking, grammar, vocabulary]
  *       - in: path
  *         name: itemId
  *         required: true
@@ -443,7 +489,7 @@ router.patch('/:type/:itemId', updateBankItem);
  *         required: true
  *         schema:
  *           type: string
- *           enum: [reading, listening, writing, speaking]
+ *           enum: [reading, listening, writing, speaking, grammar, vocabulary]
  *       - in: path
  *         name: itemId
  *         required: true
