@@ -17,7 +17,7 @@ const writingSubmissionSchema = new Schema({
     examQuestionId: { type: String }, // VD: "53" hoặc "54" để biết đang làm câu nào trong đề
     
     // --- NỘI DUNG BÀI LÀM (Dùng chung cho cả 2 nguồn) ---
-    content: { type: String, required: true },
+    content: { type: String, default: '' },
     wordCount: { type: Number, default: 0 },
     charCount: { type: Number, default: 0 },
     timeSpent: { type: Number, default: 0 },
@@ -30,23 +30,17 @@ const writingSubmissionSchema = new Schema({
     },
     evaluation: {
         totalScore: { type: Number },
-        aiFeedback: { type: String },
-        grammarErrors: [{
-            error: { type: String },
-            correction: { type: String },
-            explanation: { type: String },
-            startIndex: { type: Number },
-            endIndex: { type: Number }
-        }]
+        // Sử dụng Mixed để lưu trữ trực tiếp cấu trúc mảng JSON từ Gemini
+        aiFeedback: { type: Schema.Types.Mixed },
+        detailedCorrection: { type: Schema.Types.Mixed }
     }
 }, { timestamps: true });
 
 // Tự động kiểm tra tính toàn vẹn dữ liệu (Chỉ được phép thuộc Nguồn 1 HOẶC Nguồn 2)
-writingSubmissionSchema.pre('validate', function(next) {
+writingSubmissionSchema.pre('validate', function() {
     if (!this.writing && !this.examResult) {
-        next(new Error('Bài nộp phải thuộc về một bài Luyện viết (Writing) HOẶC một Kỳ thi (ExamResult).'));
+        throw new Error('Bài nộp phải thuộc về một bài Luyện viết (Writing) HOẶC một Kỳ thi (ExamResult).');
     }
-    next();
 });
 
 export default mongoose.model('WritingSubmission', writingSubmissionSchema);

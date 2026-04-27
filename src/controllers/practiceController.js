@@ -3,7 +3,9 @@ import Writing from '../models/Writing.js';
 import Speaking from '../models/Speaking.js';
 import ExamResult from '../models/ExamResult.js';
 import WritingSubmission from '../models/WritingSubmission.js';
+import User from '../models/User.js';
 import { ok, badRequest, notFound, serverError } from '../utils/response.js';
+import { evaluateWritingWithAI } from './gradingController.js';
 
 /**
  * GET /api/v1/practice/:type/sets
@@ -72,6 +74,20 @@ export const getPracticeSetById = async (req, res) => {
                 .lean();
 
             if (!exam) return notFound(res, 'Không tìm thấy đề thi');
+
+            // Bảo mật: Kiểm tra quyền Premium trước khi trả về chi tiết đề thi
+            if (exam.isPremium) {
+                const user = await User.findById(req.user._id);
+                const isPremiumUser = user.subscription?.isActive && user.subscription?.type === 'premium' && user.subscription?.endDate > new Date();
+                const isAdmin = ['admin', 'teacher'].includes(user.role);
+                
+                if (!isPremiumUser && !isAdmin) {
+                    return res.status(403).json({ 
+                        success: false, 
+                        message: 'Đây là đề thi Premium. Vui lòng nâng cấp gói cước để xem nội dung và làm bài.' 
+                    });
+                }
+            }
 
             // Bảo mật: Xóa isCorrect và explanation trước khi trả về Client
             const sectionsToStrip = type === 'full' ? ['reading', 'listening'] : [type];
@@ -166,6 +182,21 @@ export const startAttempt = async (req, res) => {
         const userId = req.user._id;
 
         if (['reading', 'listening', 'full'].includes(type)) {
+            // Lấy thông tin đề thi để kiểm tra Premium
+            const exam = await Exam.findById(setId);
+            if (!exam) return notFound(res, 'Không tìm thấy đề thi');
+
+            // Chặn khởi tạo lượt làm bài nếu là đề VIP mà User không có gói
+            if (exam.isPremium) {
+                const user = await User.findById(userId);
+                const isPremiumUser = user.subscription?.isActive && user.subscription?.type === 'premium' && user.subscription?.endDate > new Date();
+                const isAdmin = ['admin', 'teacher'].includes(user.role);
+                
+                if (!isPremiumUser && !isAdmin) {
+                    return res.status(403).json({ success: false, message: 'Đây là đề thi Premium. Vui lòng nâng cấp gói cước để bắt đầu làm bài.' });
+                }
+            }
+
             // Cho phép tạo attempt mới hoặc lấy attempt đang dang dở để resume (nếu muốn)
             const attempt = await ExamResult.create({
                 user: userId,
@@ -228,31 +259,47 @@ export const saveAnswer = async (req, res) => {
         const { type, questionId, answer, timeSpent } = req.body;
         const userId = req.user._id;
 
-        let attempt = await ExamResult.findOne({ _id: attemptId, user: userId });
-        if (attempt) {
-            const targetArray = type === 'reading' ? attempt.readingAnswers : attempt.listeningAnswers;
-            const existingIndex = targetArray.findIndex(a => a.questionId.toString() === questionId);
-            
-            if (existingIndex !== -1) {
-                targetArray[existingIndex].userAnswer = answer;
-            } else {
-                targetArray.push({ questionId, userAnswer: answer, isCorrect: false });
+        // Xử lý riêng biệt cho môn Viết
+        if (type === 'writing') {
+            let wSubmission = await WritingSubmission.findOne({ _id: attemptId, user: userId });
+            if (wSubmission) {
+                if (answer !== undefined) wSubmission.content = answer;
+                if (timeSpent) wSubmission.timeSpent = timeSpent;
+                await wSubmission.save();
+                return ok(res, null, 'Đã lưu bài viết tạm thời');
             }
             
-            if (timeSpent) attempt.timeSpent = timeSpent;
-            await attempt.save();
-            return ok(res, null, 'Đã lưu đáp án tạm thời');
+            let attempt = await ExamResult.findOne({ _id: attemptId, user: userId });
+            if (attempt) {
+                return badRequest(res, 'Bạn đang lưu bài viết vào một phiên thi Full Exam (Chưa hỗ trợ API riêng lẻ). Vui lòng sử dụng attemptId của bài luyện viết độc lập.');
+            }
+
+            return notFound(res, 'Không tìm thấy lượt làm bài viết');
         }
 
-        let wSubmission = await WritingSubmission.findOne({ _id: attemptId, user: userId });
-        if (wSubmission) {
-            if (answer !== undefined) wSubmission.content = answer;
-            if (timeSpent) wSubmission.timeSpent = timeSpent;
-            await wSubmission.save();
-            return ok(res, null, 'Đã lưu bài viết tạm thời');
+        // Xử lý cho Trắc nghiệm (Reading / Listening)
+        if (['reading', 'listening'].includes(type)) {
+            if (!questionId) return badRequest(res, 'Thiếu questionId cho bài thi trắc nghiệm');
+            
+            let attempt = await ExamResult.findOne({ _id: attemptId, user: userId });
+            if (attempt) {
+                const targetArray = type === 'reading' ? attempt.readingAnswers : attempt.listeningAnswers;
+                const existingIndex = targetArray.findIndex(a => a.questionId.toString() === questionId);
+                
+                if (existingIndex !== -1) {
+                    targetArray[existingIndex].userAnswer = answer;
+                } else {
+                    targetArray.push({ questionId, userAnswer: answer, isCorrect: false });
+                }
+                
+                if (timeSpent) attempt.timeSpent = timeSpent;
+                await attempt.save();
+                return ok(res, null, 'Đã lưu đáp án tạm thời');
+            }
+            return notFound(res, 'Không tìm thấy lượt làm bài thi trắc nghiệm');
         }
 
-        return notFound(res, 'Không tìm thấy lượt làm bài');
+        return badRequest(res, 'Loại bài tập (type) không hợp lệ');
     } catch (error) {
         return serverError(res, 'Lỗi khi lưu đáp án: ' + error.message);
     }
@@ -342,12 +389,35 @@ export const submitAttempt = async (req, res) => {
             return ok(res, attempt, 'Nộp bài và chấm điểm tự động thành công');
         }
 
-        let wSubmission = await WritingSubmission.findOne({ _id: attemptId, user: userId });
+        let wSubmission = await WritingSubmission.findOne({ _id: attemptId, user: userId }).populate('writing');
         if (wSubmission) {
             if (wSubmission.status !== 'draft') return badRequest(res, 'Bài viết này đã được nộp');
-            wSubmission.status = 'pending_ai';
+            
+            // Lưu trạng thái đề phòng quá trình gọi AI bị timeout
+            wSubmission.status = 'pending_ai'; 
             await wSubmission.save();
-            return ok(res, wSubmission, 'Nộp bài viết thành công, đang chờ AI chấm điểm');
+
+            try {
+                // Gọi AI để chấm bài
+                const aiResult = await evaluateWritingWithAI(
+                    wSubmission.writing?.title || 'Chủ đề tự do',
+                    wSubmission.writing?.description || '',
+                    wSubmission.content
+                );
+
+                wSubmission.evaluation = {
+                    totalScore: aiResult.score,
+                    aiFeedback: aiResult.feedback,
+                    detailedCorrection: aiResult.detailedCorrection
+                };
+                wSubmission.status = 'evaluated';
+            } catch (err) {
+                wSubmission.status = 'ai_failed';
+                console.error('Lỗi khi AI chấm điểm bài viết:', err);
+            }
+
+            await wSubmission.save();
+            return ok(res, wSubmission, 'Nộp bài viết và xử lý AI thành công');
         }
 
         return notFound(res, 'Không tìm thấy lượt làm bài');

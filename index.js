@@ -19,6 +19,9 @@ import examRoutes from './src/routes/examRoutes.js';
 import practiceRoutes from './src/routes/practiceRoutes.js';
 import attemptRoutes from './src/routes/attemptRoutes.js';
 import placementTestRoutes from './src/routes/placementTestRoutes.js';
+import subscriptionRoutes from './src/routes/subscriptionRoutes.js';
+import paymentRoutes from './src/routes/paymentRoutes.js';
+import { startSubscriptionCron } from './src/cron/subscriptionCron.js';
 
 
 
@@ -36,6 +39,8 @@ const __dirname = path.dirname(__filename);
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use(express.json());
+
+
 
 mongoose.connect(mongoURI)
     .then(() => console.log('Đã kết nối đến MongoDB thành công!'))
@@ -64,6 +69,8 @@ app.use('/api/v1/exams', examRoutes);
 app.use('/api/v1/practice', practiceRoutes);
 app.use('/api/v1/attempts', attemptRoutes);
 app.use('/api/v1', placementTestRoutes);
+app.use('/api/v1/subscriptions', subscriptionRoutes);
+app.use('/api/v1/payments', paymentRoutes);
 
 
 // app.use('/api/posts', postRoutes);
@@ -84,6 +91,9 @@ app.use('/api/v1', placementTestRoutes);
 // app.use('/api/exams', examRoutes)
 
 app.listen(port, '0.0.0.0', () => {
+    // Khởi động các Cron Job chạy ngầm
+    startSubscriptionCron();
+
     console.log(`\nServer đã sẵn sàng!`);
     console.log(`-------------------------------------------------------`);
     console.log(`Local:      http://localhost:${port}`);

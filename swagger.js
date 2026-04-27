@@ -31,6 +31,8 @@ const swaggerOptions = {
       { name: 'Practice', description: 'Danh sách bài luyện tập và lịch sử làm bài' },
       { name: 'Attempts', description: 'Theo dõi, lưu đáp án, nộp bài và xem kết quả' },
       { name: 'Placement Test', description: 'Bài quiz đầu vào' },
+      { name: 'Subscriptions', description: 'Quản lý gói cước và checkout' },
+      { name: 'Payments', description: 'Quản lý thanh toán, webhook và cấp gói' },
     ],
     components: {
       securitySchemes: {
