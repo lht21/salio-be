@@ -1,0 +1,15 @@
+
+> dev
+> node --watch --watch-path=. index.js
+
+[dotenv@17.3.1] injecting env (24) from .env -- tip: 🔐 prevent building .env in docker: https://dotenvx.com/prebuild
+[dotenv@17.3.1] injecting env (0) from .env -- tip: 🛠️  run anywhere with `dotenvx run -- yourcommand`
+MONGODB_URI = mongodb+srv://lehuytran213:salio123@cluster0-lehuytran.7ne5fqh.mongodb.net/salioapp?appName=Cluster0-LeHuyTran
+
+Server đã sẵn sàng!
+-------------------------------------------------------
+Local:      http://localhost:5000
+Swagger:    http://localhost:5000/api-docs
+Mobile/LAN: http://192.168.1.11:5000
+-------------------------------------------------------
+Đã kết nối đến MongoDB thành công!

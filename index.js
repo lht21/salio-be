@@ -18,6 +18,7 @@ import uploadRoutes from './src/routes/uploadRoutes.js';
 import examRoutes from './src/routes/examRoutes.js';
 import practiceRoutes from './src/routes/practiceRoutes.js';
 import attemptRoutes from './src/routes/attemptRoutes.js';
+import placementTestRoutes from './src/routes/placementTestRoutes.js';
 
 
 
@@ -62,6 +63,7 @@ app.use('/api/v1/upload', uploadRoutes);
 app.use('/api/v1/exams', examRoutes);
 app.use('/api/v1/practice', practiceRoutes);
 app.use('/api/v1/attempts', attemptRoutes);
+app.use('/api/v1', placementTestRoutes);
 
 
 // app.use('/api/posts', postRoutes);

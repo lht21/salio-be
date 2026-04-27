@@ -26,6 +26,7 @@
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1"
   },
+  "type": "module",
   "scripts": {
     "start": "node index.js",
     "dev": "node --watch --watch-path=. index.js"
