@@ -99,7 +99,7 @@ export const updateExam = async (req, res) => {
         const exam = await Exam.findByIdAndUpdate(
             req.params.examId,
             updateData,
-            { new: true, runValidators: true }
+            { returnDocument: 'after', runValidators: true }
         );
 
         if (!exam) return notFound(res, 'Không tìm thấy đề thi để cập nhật');

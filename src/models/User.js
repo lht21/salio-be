@@ -19,7 +19,8 @@ const userSchema = new Schema({
     type: { type: String, enum: ['free', 'premium'], default: 'free' },
     startDate: { type: Date },
     endDate: { type: Date },
-    isActive: { type: Boolean, default: false }
+    isActive: { type: Boolean, default: false },
+    isAutoRenew: { type: Boolean, default: false } // Đánh dấu có đang tự động gia hạn hay không
   },
 
   // Auth & Security

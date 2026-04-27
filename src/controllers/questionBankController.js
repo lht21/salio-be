@@ -152,7 +152,7 @@ export const updateBankItem = async (req, res) => {
         }
 
         const updatedItem = await Model.findByIdAndUpdate(itemId, req.body, {
-            new: true,
+            returnDocument: 'after',
             runValidators: true
         });
 

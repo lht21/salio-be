@@ -39,6 +39,5 @@ const paymentSchema = new Schema({
 
 // Index để load lịch sử mua hàng siêu tốc
 paymentSchema.index({ user: 1, status: 1 });
-paymentSchema.index({ orderId: 1 });
 
 export default mongoose.model('Payment', paymentSchema);

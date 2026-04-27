@@ -3,6 +3,7 @@ import Writing from '../models/Writing.js';
 import Speaking from '../models/Speaking.js';
 import ExamResult from '../models/ExamResult.js';
 import WritingSubmission from '../models/WritingSubmission.js';
+import User from '../models/User.js';
 import { ok, badRequest, notFound, serverError } from '../utils/response.js';
 import { evaluateWritingWithAI } from './gradingController.js';
 
@@ -73,6 +74,20 @@ export const getPracticeSetById = async (req, res) => {
                 .lean();
 
             if (!exam) return notFound(res, 'Không tìm thấy đề thi');
+
+            // Bảo mật: Kiểm tra quyền Premium trước khi trả về chi tiết đề thi
+            if (exam.isPremium) {
+                const user = await User.findById(req.user._id);
+                const isPremiumUser = user.subscription?.isActive && user.subscription?.type === 'premium' && user.subscription?.endDate > new Date();
+                const isAdmin = ['admin', 'teacher'].includes(user.role);
+                
+                if (!isPremiumUser && !isAdmin) {
+                    return res.status(403).json({ 
+                        success: false, 
+                        message: 'Đây là đề thi Premium. Vui lòng nâng cấp gói cước để xem nội dung và làm bài.' 
+                    });
+                }
+            }
 
             // Bảo mật: Xóa isCorrect và explanation trước khi trả về Client
             const sectionsToStrip = type === 'full' ? ['reading', 'listening'] : [type];
@@ -167,6 +182,21 @@ export const startAttempt = async (req, res) => {
         const userId = req.user._id;
 
         if (['reading', 'listening', 'full'].includes(type)) {
+            // Lấy thông tin đề thi để kiểm tra Premium
+            const exam = await Exam.findById(setId);
+            if (!exam) return notFound(res, 'Không tìm thấy đề thi');
+
+            // Chặn khởi tạo lượt làm bài nếu là đề VIP mà User không có gói
+            if (exam.isPremium) {
+                const user = await User.findById(userId);
+                const isPremiumUser = user.subscription?.isActive && user.subscription?.type === 'premium' && user.subscription?.endDate > new Date();
+                const isAdmin = ['admin', 'teacher'].includes(user.role);
+                
+                if (!isPremiumUser && !isAdmin) {
+                    return res.status(403).json({ success: false, message: 'Đây là đề thi Premium. Vui lòng nâng cấp gói cước để bắt đầu làm bài.' });
+                }
+            }
+
             // Cho phép tạo attempt mới hoặc lấy attempt đang dang dở để resume (nếu muốn)
             const attempt = await ExamResult.create({
                 user: userId,
