@@ -2,7 +2,11 @@ import Reading from '../models/Reading.js';
 import Listening from '../models/Listening.js';
 import Writing from '../models/Writing.js';
 import Speaking from '../models/Speaking.js';
+import GrammarQuestion from '../models/GrammarQuestion.js';
+import VocabularyQuestion from '../models/VocabularyQuestion.js';
 import Exam from '../models/Exam.js';
+import VocabularyQuiz from '../models/VocabularyQuiz.js';
+import GrammarQuiz from '../models/GrammarQuiz.js';
 import { DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { s3Client } from "../middlewares/upload.js";
 
@@ -13,6 +17,8 @@ const getModelByType = (type) => {
         case 'listening': return Listening;
         case 'writing': return Writing;
         case 'speaking': return Speaking;
+        case 'grammar': return GrammarQuestion;
+        case 'vocabulary': return VocabularyQuestion;
         default: return null;
     }
 };
@@ -186,6 +192,26 @@ export const deleteBankItem = async (req, res) => {
                 return res.status(400).json({ 
                     success: false, 
                     message: `Không thể xóa! Dữ liệu này đang được sử dụng trong đề thi: ${examUsingItem.title}` 
+                });
+            }
+        }
+
+        if (type === 'vocabulary') {
+            const quizUsingItem = await VocabularyQuiz.findOne({ items: itemId });
+            if (quizUsingItem) {
+                return res.status(400).json({
+                    success: false,
+                    message: `Không thể xóa! Item này đang được dùng trong quiz từ vựng: ${quizUsingItem.title}`
+                });
+            }
+        }
+
+        if (type === 'grammar') {
+            const quizUsingItem = await GrammarQuiz.findOne({ items: itemId });
+            if (quizUsingItem) {
+                return res.status(400).json({
+                    success: false,
+                    message: `Không thể xóa! Item này đang được dùng trong quiz ngữ pháp: ${quizUsingItem.title}`
                 });
             }
         }

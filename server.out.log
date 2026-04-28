@@ -1318,3 +1318,135 @@ Swagger:    http://localhost:5000/api-docs
 Mobile/LAN: http://192.168.1.11:5000
 -------------------------------------------------------
 Đã kết nối đến MongoDB thành công!
+Restarting 'index.js'
+[dotenv@17.3.1] injecting env (24) from .env -- tip: ⚙️  specify custom .env file path with { path: '/custom/path/.env' }
+[dotenv@17.3.1] injecting env (0) from .env -- tip: ⚙️  enable debug logging with { debug: true }
+MONGODB_URI = mongodb+srv://lehuytran213:N9sA2ZoIcWbW35RP@cluster0-lehuytran.7ne5fqh.mongodb.net/salioapp?appName=Cluster0-LeHuyTran
+
+Server đã sẵn sàng!
+-------------------------------------------------------
+Local:      http://localhost:5000
+Swagger:    http://localhost:5000/api-docs
+Mobile/LAN: http://192.168.1.11:5000
+-------------------------------------------------------
+Đã kết nối đến MongoDB thành công!
+Restarting 'index.js'
+Restarting 'index.js'
+Restarting 'index.js'
+[dotenv@17.3.1] injecting env (24) from .env -- tip: ⚙️  write to custom object with { processEnv: myObject }
+[dotenv@17.3.1] injecting env (0) from .env -- tip: 🔐 prevent building .env in docker: https://dotenvx.com/prebuild
+MONGODB_URI = mongodb+srv://lehuytran213:N9sA2ZoIcWbW35RP@cluster0-lehuytran.7ne5fqh.mongodb.net/salioapp?appName=Cluster0-LeHuyTran
+
+Server đã sẵn sàng!
+-------------------------------------------------------
+Local:      http://localhost:5000
+Swagger:    http://localhost:5000/api-docs
+Mobile/LAN: http://192.168.1.11:5000
+-------------------------------------------------------
+Đã kết nối đến MongoDB thành công!
+Restarting 'index.js'
+Restarting 'index.js'
+[dotenv@17.3.1] injecting env (24) from .env -- tip: 🔐 prevent building .env in docker: https://dotenvx.com/prebuild
+[dotenv@17.3.1] injecting env (0) from .env -- tip: ⚙️  specify custom .env file path with { path: '/custom/path/.env' }
+MONGODB_URI = mongodb+srv://lehuytran213:N9sA2ZoIcWbW35RP@cluster0-lehuytran.7ne5fqh.mongodb.net/salioapp?appName=Cluster0-LeHuyTran
+
+Server đã sẵn sàng!
+-------------------------------------------------------
+Local:      http://localhost:5000
+Swagger:    http://localhost:5000/api-docs
+Mobile/LAN: http://192.168.1.11:5000
+-------------------------------------------------------
+Đã kết nối đến MongoDB thành công!
+Restarting 'index.js'
+Restarting 'index.js'
+[dotenv@17.3.1] injecting env (24) from .env -- tip: 🛡️ auth for agents: https://vestauth.com
+[dotenv@17.3.1] injecting env (0) from .env -- tip: ⚙️  specify custom .env file path with { path: '/custom/path/.env' }
+MONGODB_URI = mongodb+srv://lehuytran213:N9sA2ZoIcWbW35RP@cluster0-lehuytran.7ne5fqh.mongodb.net/salioapp?appName=Cluster0-LeHuyTran
+
+Server đã sẵn sàng!
+-------------------------------------------------------
+Local:      http://localhost:5000
+Swagger:    http://localhost:5000/api-docs
+Mobile/LAN: http://192.168.1.11:5000
+-------------------------------------------------------
+Đã kết nối đến MongoDB thành công!
+Restarting 'index.js'
+[dotenv@17.3.1] injecting env (24) from .env -- tip: 🛡️ auth for agents: https://vestauth.com
+[dotenv@17.3.1] injecting env (0) from .env -- tip: ⚙️  enable debug logging with { debug: true }
+MONGODB_URI = mongodb+srv://lehuytran213:N9sA2ZoIcWbW35RP@cluster0-lehuytran.7ne5fqh.mongodb.net/salioapp?appName=Cluster0-LeHuyTran
+
+Server đã sẵn sàng!
+-------------------------------------------------------
+Local:      http://localhost:5000
+Swagger:    http://localhost:5000/api-docs
+Mobile/LAN: http://192.168.1.11:5000
+-------------------------------------------------------
+Đã kết nối đến MongoDB thành công!
+Restarting 'index.js'
+[dotenv@17.3.1] injecting env (24) from .env -- tip: ⚙️  write to custom object with { processEnv: myObject }
+[dotenv@17.3.1] injecting env (0) from .env -- tip: ⚙️  enable debug logging with { debug: true }
+MONGODB_URI = mongodb+srv://lehuytran213:N9sA2ZoIcWbW35RP@cluster0-lehuytran.7ne5fqh.mongodb.net/salioapp?appName=Cluster0-LeHuyTran
+
+Server đã sẵn sàng!
+-------------------------------------------------------
+Local:      http://localhost:5000
+Swagger:    http://localhost:5000/api-docs
+Mobile/LAN: http://192.168.1.11:5000
+-------------------------------------------------------
+Đã kết nối đến MongoDB thành công!
+Restarting 'index.js'
+Restarting 'index.js'
+[dotenv@17.3.1] injecting env (24) from .env -- tip: ⚙️  override existing env vars with { override: true }
+[dotenv@17.3.1] injecting env (0) from .env -- tip: 🔐 encrypt with Dotenvx: https://dotenvx.com
+MONGODB_URI = mongodb+srv://lehuytran213:N9sA2ZoIcWbW35RP@cluster0-lehuytran.7ne5fqh.mongodb.net/salioapp?appName=Cluster0-LeHuyTran
+
+Server đã sẵn sàng!
+-------------------------------------------------------
+Local:      http://localhost:5000
+Swagger:    http://localhost:5000/api-docs
+Mobile/LAN: http://192.168.1.11:5000
+-------------------------------------------------------
+Đã kết nối đến MongoDB thành công!
+Restarting 'index.js'
+[dotenv@17.3.1] injecting env (24) from .env -- tip: ⚙️  load multiple .env files with { path: ['.env.local', '.env'] }
+[dotenv@17.3.1] injecting env (0) from .env -- tip: ⚙️  specify custom .env file path with { path: '/custom/path/.env' }
+MONGODB_URI = mongodb+srv://lehuytran213:N9sA2ZoIcWbW35RP@cluster0-lehuytran.7ne5fqh.mongodb.net/salioapp?appName=Cluster0-LeHuyTran
+
+Server đã sẵn sàng!
+-------------------------------------------------------
+Local:      http://localhost:5000
+Swagger:    http://localhost:5000/api-docs
+Mobile/LAN: http://192.168.1.11:5000
+-------------------------------------------------------
+Đã kết nối đến MongoDB thành công!
+Restarting 'index.js'
+Restarting 'index.js'
+[dotenv@17.3.1] injecting env (24) from .env -- tip: ⚙️  specify custom .env file path with { path: '/custom/path/.env' }
+[dotenv@17.3.1] injecting env (0) from .env -- tip: 🔐 prevent committing .env to code: https://dotenvx.com/precommit
+MONGODB_URI = mongodb+srv://lehuytran213:N9sA2ZoIcWbW35RP@cluster0-lehuytran.7ne5fqh.mongodb.net/salioapp?appName=Cluster0-LeHuyTran
+
+Server đã sẵn sàng!
+-------------------------------------------------------
+Local:      http://localhost:5000
+Swagger:    http://localhost:5000/api-docs
+Mobile/LAN: http://192.168.1.11:5000
+-------------------------------------------------------
+Đã kết nối đến MongoDB thành công!
+Restarting 'index.js'
+[dotenv@17.3.1] injecting env (24) from .env -- tip: ⚙️  load multiple .env files with { path: ['.env.local', '.env'] }
+[dotenv@17.3.1] injecting env (0) from .env -- tip: ⚙️  override existing env vars with { override: true }
+MONGODB_URI = mongodb+srv://lehuytran213:N9sA2ZoIcWbW35RP@cluster0-lehuytran.7ne5fqh.mongodb.net/salioapp?appName=Cluster0-LeHuyTran
+Restarting 'index.js'
+Restarting 'index.js'
+Restarting 'index.js'
+[dotenv@17.3.1] injecting env (24) from .env -- tip: ⚡️ secrets for agents: https://dotenvx.com/as2
+[dotenv@17.3.1] injecting env (0) from .env -- tip: 🔐 prevent committing .env to code: https://dotenvx.com/precommit
+MONGODB_URI = mongodb+srv://lehuytran213:N9sA2ZoIcWbW35RP@cluster0-lehuytran.7ne5fqh.mongodb.net/salioapp?appName=Cluster0-LeHuyTran
+
+Server đã sẵn sàng!
+-------------------------------------------------------
+Local:      http://localhost:5000
+Swagger:    http://localhost:5000/api-docs
+Mobile/LAN: http://192.168.1.11:5000
+-------------------------------------------------------
+Đã kết nối đến MongoDB thành công!
