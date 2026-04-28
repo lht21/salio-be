@@ -1,15 +1,14 @@
 import dotenv from 'dotenv';
 dotenv.config();
-console.log("MONGODB_URI =", process.env.MONGODB_URI);
 
 import swaggerUi from 'swagger-ui-express';
 import swaggerSpec from './swagger.js';
 
 import express from 'express';
 import mongoose from 'mongoose';
-import cors from 'cors'; 
+import cors from 'cors';
 import path from 'path';
-import { fileURLToPath } from 'url'; // THÊM DÒNG NÀY
+import { fileURLToPath } from 'url';
 
 import authRoutes from './src/routes/authRoutes.js';
 import userRoutes from './src/routes/userRoutes.js';
@@ -21,43 +20,42 @@ import attemptRoutes from './src/routes/attemptRoutes.js';
 import placementTestRoutes from './src/routes/placementTestRoutes.js';
 import subscriptionRoutes from './src/routes/subscriptionRoutes.js';
 import paymentRoutes from './src/routes/paymentRoutes.js';
-import grammarRoutes from './src/routes/grammarRoutes.js';
-import { startSubscriptionCron } from './src/cron/subscriptionCron.js';
 import { startGamificationCron } from './src/cron/gamificationCron.js';
-import supportRoutes from './src/routes/supportRoutes.js';
-import flashcardRoutes from './src/routes/flashcardRoutes.js';
-import vocabularyRoutes from './src/routes/vocabularyRoutes.js';
 import gamificationRoutes from './src/routes/gamificationRoutes.js';
 
 
 
 // Cấu hình dotenv để sử dụng các biến môi trường
 // import NewsScheduler from './src/services/newsScheduler.js';
+import supportRoutes from './src/routes/supportRoutes.js';
+import flashcardRoutes from './src/routes/flashcardRoutes.js';
+import vocabularyRoutes from './src/routes/vocabularyRoutes.js';
+import grammarRoutes from './src/routes/grammarRoutes.js';
+import lessonRoutes from './src/routes/lessonRoutes.js';
+import { startSubscriptionCron } from './src/cron/subscriptionCron.js';
 
 const app = express();
 const port = process.env.PORT || 5000;
 const mongoURI = process.env.MONGODB_URI;
 
 app.use(cors());
+app.use(express.json());
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-app.use(express.json());
-
-
 
 mongoose.connect(mongoURI)
     .then(() => console.log('Đã kết nối đến MongoDB thành công!'))
-    .catch(err => console.error('Lỗi kết nối MongoDB:', err));
+    .catch(error => console.error('Lỗi kết nối MongoDB:', error));
 
 app.use(
     '/api-docs',
     swaggerUi.serve,
     swaggerUi.setup(swaggerSpec, {
         explorer: true,
-        customSiteTitle: 'Salio API Docs',
+        customSiteTitle: 'Salio API Docs'
     })
 );
 
@@ -66,7 +64,6 @@ app.get('/api-docs.json', (req, res) => {
     res.send(swaggerSpec);
 });
 
-// Định tuyến API
 app.use('/api/auth', authRoutes);
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/bank', questionBankRoutes);
@@ -100,16 +97,16 @@ app.use('/api/v1/gamification', gamificationRoutes);
 // app.use('/api/grade', gradingRoutes) // Tạm thời vô hiệu hóa để chỉ test auth
 
 // app.use('/api/exams', examRoutes)
+app.use('/api/v1/lessons', lessonRoutes);
 
 app.listen(port, '0.0.0.0', () => {
-    // Khởi động các Cron Job chạy ngầm
     startSubscriptionCron();
     startGamificationCron();
 
-    console.log(`\nServer đã sẵn sàng!`);
-    console.log(`-------------------------------------------------------`);
+    console.log('\nServer đã sẵn sàng!');
+    console.log('-------------------------------------------------------');
     console.log(`Local:      http://localhost:${port}`);
     console.log(`Swagger:    http://localhost:${port}/api-docs`);
     console.log(`Mobile/LAN: http://192.168.1.11:${port}`);
-    console.log(`-------------------------------------------------------`);
+    console.log('-------------------------------------------------------');
 });

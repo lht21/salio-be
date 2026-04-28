@@ -1,5 +1,7 @@
 import mongoose from 'mongoose';
+
 const Schema = mongoose.Schema;
+const LEVELS = ['Sơ cấp 1', 'Sơ cấp 2', 'Trung cấp 3', 'Trung cấp 4', 'Cao cấp 5', 'Cao cấp 6'];
 
 const quizAnswerSchema = new Schema({
     sectionType: {
@@ -24,10 +26,7 @@ const quizSessionSchema = new Schema({
     maxScore: { type: Number, default: 0 },
     percentage: { type: Number, default: 0 },
     passed: { type: Boolean },
-    recommendedLevel: {
-        type: String,
-        enum: ['Sơ cấp 1', 'Sơ cấp 2', 'Trung cấp 3', 'Trung cấp 4', 'Cao cấp 5', 'Cao cấp 6']
-    },
+    recommendedLevel: { type: String, enum: LEVELS },
     skipLessonOrderUpTo: { type: Number, default: 0 },
     skippedLessons: [{ type: Schema.Types.ObjectId, ref: 'Lesson' }],
     timeSpent: { type: Number, default: 0 },

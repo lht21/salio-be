@@ -1,23 +1,20 @@
 import mongoose from 'mongoose';
-import { questionSchema } from '../schemas/question.schema.js'; // Tái sử dụng lõi câu hỏi
+import { questionSchema } from '../schemas/question.schema.js';
 
 const Schema = mongoose.Schema;
+const LEVELS = ['Sơ cấp 1', 'Sơ cấp 2', 'Trung cấp 3', 'Trung cấp 4', 'Cao cấp 5', 'Cao cấp 6'];
 
 const levelRuleSchema = new Schema({
     minPercent: { type: Number, required: true, min: 0, max: 100 },
     maxPercent: { type: Number, required: true, min: 0, max: 100 },
-    level: {
-        type: String,
-        enum: ['Sơ cấp 1', 'Sơ cấp 2', 'Trung cấp 3', 'Trung cấp 4', 'Cao cấp 5', 'Cao cấp 6'],
-        required: true
-    },
+    level: { type: String, enum: LEVELS, required: true },
     skipLessonOrderUpTo: { type: Number, default: 0 },
     skippedLessons: [{ type: Schema.Types.ObjectId, ref: 'Lesson' }]
 }, { _id: false });
 
 const quizSchema = new Schema({
-    title: { type: String, required: true, trim: true }, 
-    description: { type: String }, 
+    title: { type: String, required: true, trim: true },
+    description: { type: String },
     type: {
         type: String,
         enum: ['placement', 'lesson_final'],
@@ -25,8 +22,8 @@ const quizSchema = new Schema({
         index: true
     },
     lesson: { type: Schema.Types.ObjectId, ref: 'Lesson' },
-    
-    questions: [questionSchema], 
+
+    questions: [questionSchema],
 
     sections: {
         listening: [{ type: Schema.Types.ObjectId, ref: 'Listening' }],
@@ -34,9 +31,9 @@ const quizSchema = new Schema({
         writing: [{ type: Schema.Types.ObjectId, ref: 'Writing' }],
         speaking: [{ type: Schema.Types.ObjectId, ref: 'Speaking' }]
     },
-    
-    passingScore: { type: Number, default: 80 }, 
-    timeLimit: { type: Number, default: 300 },  
+
+    passingScore: { type: Number, default: 80 },
+    timeLimit: { type: Number, default: 300 },
     placementConfig: {
         levelRules: {
             type: [levelRuleSchema],
@@ -50,15 +47,13 @@ const quizSchema = new Schema({
             ]
         }
     },
-    
-    level: {
-        type: String,
-        enum: ['Sơ cấp 1', 'Sơ cấp 2', 'Trung cấp 3', 'Trung cấp 4', 'Cao cấp 5', 'Cao cấp 6']
-    },
+
+    level: { type: String, enum: LEVELS },
     createdBy: { type: Schema.Types.ObjectId, ref: 'User' },
     isActive: { type: Boolean, default: true }
 }, { timestamps: true });
 
 quizSchema.index({ type: 1, isActive: 1, updatedAt: -1 });
+quizSchema.index({ lesson: 1, type: 1 });
 
 export default mongoose.model('Quiz', quizSchema);
