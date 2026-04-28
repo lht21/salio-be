@@ -6,6 +6,7 @@ const sectionProgressSchema = new Schema({
     progress: { type: Number, default: 0 },
     totalItems: { type: Number, default: 0 },
     completedCount: { type: Number, default: 0 },
+    isRewardClaimed: { type: Boolean, default: false },
     items: [{
         itemId: { type: Schema.Types.ObjectId, required: true },
         status: { type: String, enum: ['locked', 'learning', 'completed'], default: 'locked' },
@@ -21,7 +22,8 @@ const lessonProgressSchema = new Schema({
     finalTestStatus: {
         isPassed: { type: Boolean, default: false },
         highestScore: { type: Number, default: 0 },
-        attempts: { type: Number, default: 0 }
+        attempts: { type: Number, default: 0 },
+        isRewardClaimed: { type: Boolean, default: false }
     },
     overallProgress: { type: Number, default: 0 },
     isCompleted: { type: Boolean, default: false },
@@ -47,7 +49,10 @@ lessonProgressSchema.pre('save', function (next) {
         this.isCompleted = true;
         const keys = ['vocabulary', 'grammar', 'listening', 'speaking', 'reading', 'writing'];
         keys.forEach(key => {
-            if (this.sections[key]) this.sections[key].isUnlocked = true;
+            if (this.sections[key]) {
+                this.sections[key].isUnlocked = true;
+                this.sections[key].progress = 100; // Tự động hoàn thành 100% khi qua Final Test
+            }
         });
         return next();
     }
@@ -78,5 +83,48 @@ lessonProgressSchema.pre('save', function (next) {
 });
 
 lessonProgressSchema.index({ user: 1, lesson: 1 }, { unique: true });
+
+lessonProgressSchema.methods.claimRewards = async function () {
+    let earnedClouds = 0;
+    const keys = ['vocabulary', 'grammar', 'listening', 'speaking', 'reading', 'writing'];
+
+    if (this.finalTestStatus.isPassed) {
+        // 1. Thưởng 50 mây cho bài Final Test (nếu chưa nhận)
+        if (!this.finalTestStatus.isRewardClaimed) {
+            earnedClouds += 50;
+            this.finalTestStatus.isRewardClaimed = true;
+        }
+
+        // 2. Thưởng bù đắp (Retroactive) cho các kỹ năng chưa nhận thưởng
+        keys.forEach(key => {
+            const section = this.sections[key];
+            if (section && !section.isRewardClaimed) {
+                earnedClouds += 10;
+                section.isRewardClaimed = true;
+            }
+        });
+    } else {
+        // Luồng học tuần tự: Kỹ năng nào đạt 100% thì thưởng 10 mây
+        keys.forEach(key => {
+            const section = this.sections[key];
+            if (section && section.progress === 100 && !section.isRewardClaimed) {
+                earnedClouds += 10;
+                section.isRewardClaimed = true;
+            }
+        });
+    }
+
+    // 3. Tự động cộng mây vào tài khoản User
+    if (earnedClouds > 0) {
+        const UserProgress = mongoose.model('UserProgress');
+        let progress = await UserProgress.findOne({ user: this.user });
+        if (progress) {
+            progress.addClouds(earnedClouds);
+            await progress.save();
+        }
+    }
+
+    return earnedClouds;
+};
 
 export default mongoose.model('LessonProgress', lessonProgressSchema);

@@ -5,10 +5,25 @@ const userProgressSchema = new Schema({
   user: { type: Schema.Types.ObjectId, ref: 'User', required: true, unique: true },
   
   gamification: {
-    clouds: { type: Number, default: 0 },
+    clouds: { type: Number, default: 100 }, // Thưởng 100 mây mặc định cho tài khoản mới
     currentStreak: { type: Number, default: 0 },
     highestStreak: { type: Number, default: 0 },
-    activeDates: [{ type: String }] // Format: "YYYY-MM-DD"
+    activeDates: [{ type: String }], // Format: "YYYY-MM-DD"
+    dailyQuest: {
+      date: { type: String }, // Lưu ngày hiện tại để reset
+      missions: [{
+        id: String, // 'D1', 'D2'...
+        progress: { type: Number, default: 0 },
+        isClaimed: { type: Boolean, default: false } // Đã bấm nhận thưởng chưa
+      }],
+    },
+    inventory: {
+      streakFreezes: { type: Number, default: 0 }, // R1: Số lượng bùa bảo vệ streak
+      doubleRewardEndDate: { type: Date },         // R2: Thời điểm hết hạn x2
+      advancedAIAttempts: { type: Number, default: 0 }, // R3: Số lượt chấm AI nâng cao
+      badges: [{ type: String }],                  // R5: Danh sách huy hiệu hiếm
+      unlockedExams: [{ type: Schema.Types.ObjectId, ref: 'Exam' }] // R7: Đề thi Premium đã mua
+    }
   },
 
   statistics: {
@@ -72,12 +87,42 @@ userProgressSchema.methods.recordActiveDay = function () {
 };
  
 /**
+ * Cập nhật tiến độ nhiệm vụ hằng ngày
+ * @param {string} missionId - ID của nhiệm vụ (VD: 'D3')
+ * @param {number} amount - Số lượng cộng thêm
+ */
+userProgressSchema.methods.updateMissionProgress = function (missionId, amount = 1) {
+  const today = new Date().toISOString().slice(0, 10);
+  
+  // Nếu qua ngày mới -> Reset lại danh sách nhiệm vụ
+  if (this.gamification.dailyQuest?.date !== today) {
+    this.gamification.dailyQuest = {
+      date: today,
+      missions: ['D1', 'D2', 'D3', 'D4', 'D5'].map(id => ({ id, progress: 0, isClaimed: false }))
+    };
+  }
+
+  const mission = this.gamification.dailyQuest.missions.find(m => m.id === missionId);
+  if (mission && !mission.isClaimed) {
+    mission.progress += amount;
+  }
+  return this;
+};
+
+/**
  * Cộng thêm clouds (reward currency).
  * @param {number} amount - số clouds cộng thêm (phải > 0)
  */
 userProgressSchema.methods.addClouds = function (amount) {
   if (amount <= 0) throw new Error('Amount phải lớn hơn 0');
-  this.gamification.clouds += amount;
+  
+  let finalAmount = amount;
+  // Kiểm tra hiệu ứng x2 mây (Double Reward)
+  if (this.gamification.inventory?.doubleRewardEndDate && this.gamification.inventory.doubleRewardEndDate > new Date()) {
+    finalAmount *= 2;
+  }
+  
+  this.gamification.clouds += finalAmount;
   return this;
 };
  

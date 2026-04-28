@@ -23,9 +23,11 @@ import subscriptionRoutes from './src/routes/subscriptionRoutes.js';
 import paymentRoutes from './src/routes/paymentRoutes.js';
 import grammarRoutes from './src/routes/grammarRoutes.js';
 import { startSubscriptionCron } from './src/cron/subscriptionCron.js';
+import { startGamificationCron } from './src/cron/gamificationCron.js';
 import supportRoutes from './src/routes/supportRoutes.js';
 import flashcardRoutes from './src/routes/flashcardRoutes.js';
 import vocabularyRoutes from './src/routes/vocabularyRoutes.js';
+import gamificationRoutes from './src/routes/gamificationRoutes.js';
 
 
 
@@ -79,6 +81,7 @@ app.use('/api/v1/support', supportRoutes);
 app.use('/api/v1/flashcard-sets', flashcardRoutes);
 app.use('/api/v1/vocabularies', vocabularyRoutes);
 app.use('/api/v1/grammars', grammarRoutes);
+app.use('/api/v1/gamification', gamificationRoutes);
 
 
 // app.use('/api/posts', postRoutes);
@@ -101,6 +104,7 @@ app.use('/api/v1/grammars', grammarRoutes);
 app.listen(port, '0.0.0.0', () => {
     // Khởi động các Cron Job chạy ngầm
     startSubscriptionCron();
+    startGamificationCron();
 
     console.log(`\nServer đã sẵn sàng!`);
     console.log(`-------------------------------------------------------`);

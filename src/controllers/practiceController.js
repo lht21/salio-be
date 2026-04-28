@@ -4,6 +4,7 @@ import Speaking from '../models/Speaking.js';
 import ExamResult from '../models/ExamResult.js';
 import WritingSubmission from '../models/WritingSubmission.js';
 import User from '../models/User.js';
+import UserProgress from '../models/UserProgress.js';
 import { ok, badRequest, notFound, serverError } from '../utils/response.js';
 import { evaluateWritingWithAI } from './gradingController.js';
 
@@ -81,7 +82,11 @@ export const getPracticeSetById = async (req, res) => {
                 const isPremiumUser = user.subscription?.isActive && user.subscription?.type === 'premium' && user.subscription?.endDate > new Date();
                 const isAdmin = ['admin', 'teacher'].includes(user.role);
                 
-                if (!isPremiumUser && !isAdmin) {
+                // Check thêm trường hợp đã dùng mây mở khoá bài thi (Vật phẩm R7)
+                const progress = await UserProgress.findOne({ user: req.user._id });
+                const isUnlockedByClouds = progress?.gamification?.inventory?.unlockedExams?.some(id => id.toString() === setId);
+                
+                if (!isPremiumUser && !isAdmin && !isUnlockedByClouds) {
                     return res.status(403).json({ 
                         success: false, 
                         message: 'Đây là đề thi Premium. Vui lòng nâng cấp gói cước để xem nội dung và làm bài.' 
@@ -192,7 +197,11 @@ export const startAttempt = async (req, res) => {
                 const isPremiumUser = user.subscription?.isActive && user.subscription?.type === 'premium' && user.subscription?.endDate > new Date();
                 const isAdmin = ['admin', 'teacher'].includes(user.role);
                 
-                if (!isPremiumUser && !isAdmin) {
+                // Check thêm trường hợp đã dùng mây mở khoá bài thi (Vật phẩm R7)
+                const progress = await UserProgress.findOne({ user: userId });
+                const isUnlockedByClouds = progress?.gamification?.inventory?.unlockedExams?.some(id => id.toString() === setId);
+                
+                if (!isPremiumUser && !isAdmin && !isUnlockedByClouds) {
                     return res.status(403).json({ success: false, message: 'Đây là đề thi Premium. Vui lòng nâng cấp gói cước để bắt đầu làm bài.' });
                 }
             }
@@ -386,6 +395,20 @@ export const submitAttempt = async (req, res) => {
             
             attempt = await autoGradeExam(attempt);
             await attempt.save();
+
+            // Hook: Hoàn thành bài -> Tích lũy Nhiệm vụ D5 (Học trong ngày)
+            let progress = await UserProgress.findOne({ user: userId });
+            if (progress) {
+                // Cập nhật điểm thi thử cao nhất vào thống kê để đua Top
+                const examInfo = await Exam.findById(attempt.exam);
+                if (examInfo && examInfo.examType === 'mock_test') {
+                    progress.updateMockScore(attempt.totalScore);
+                }
+                
+                progress.updateMissionProgress('D5', 1);
+                await progress.save();
+            }
+
             return ok(res, attempt, 'Nộp bài và chấm điểm tự động thành công');
         }
 
@@ -417,6 +440,15 @@ export const submitAttempt = async (req, res) => {
             }
 
             await wSubmission.save();
+
+        // Hook: Gamification cập nhật nhiệm vụ D3 (Làm Writing) và D5 (Học trong ngày)
+        let progress = await UserProgress.findOne({ user: userId });
+        if (progress) {
+            progress.updateMissionProgress('D3', 1);
+            progress.updateMissionProgress('D5', 1);
+            await progress.save();
+        }
+
             return ok(res, wSubmission, 'Nộp bài viết và xử lý AI thành công');
         }
 
