@@ -12,6 +12,7 @@ import {
     updateLessonSectionProgress,
     getLessonSkillItem,
     submitLessonSkillItem,
+    submitLessonSpeakingAudio,
     getLessonSkillResult,
     evaluateLessonSpeakingSubmission,
     startLesson,
@@ -31,6 +32,7 @@ import {
     getLessonFinalTestResult
 } from '../controllers/lessonController.js';
 import { protect, admin } from '../middlewares/auth.js';
+import { uploadAudio } from '../middlewares/upload.js';
 
 const router = express.Router();
 
@@ -860,6 +862,47 @@ router.get('/:lessonId/skills/:sectionType/:itemId', getLessonSkillItem);
  *         description: Trả về result/submission và LessonProgress mới nhất
  */
 router.post('/:lessonId/skills/:sectionType/:itemId/submit', submitLessonSkillItem);
+
+/**
+ * @swagger
+ * /api/v1/lessons/{lessonId}/skills/speaking/{itemId}/submit-audio:
+ *   post:
+ *     summary: Student upload audio bài nói và để BE tự chấm AI
+ *     description: Field form-data bắt buộc là file audio. BE lưu file lên S3, tạo SpeakingSubmission, gọi Azure/OpenAI hoặc Gemini để chấm và cập nhật progress.
+ *     tags: [Lessons]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: lessonId
+ *         required: true
+ *         schema:
+ *           type: string
+ *       - in: path
+ *         name: itemId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             required: [file, recordingDuration]
+ *             properties:
+ *               file:
+ *                 type: string
+ *                 format: binary
+ *               recordingDuration:
+ *                 type: number
+ *               timeSpent:
+ *                 type: number
+ *     responses:
+ *       201:
+ *         description: Trả về SpeakingSubmission đã chấm và LessonProgress mới nhất
+ */
+router.post('/:lessonId/skills/speaking/:itemId/submit-audio', uploadAudio.single('file'), submitLessonSpeakingAudio);
 
 /**
  * @swagger

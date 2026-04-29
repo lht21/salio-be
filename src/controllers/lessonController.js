@@ -18,6 +18,7 @@ import SpeakingSubmission from '../models/SpeakingSubmission.js';
 import SpeakingProgress from '../models/SpeakingProgress.js';
 import { ok, created, badRequest, notFound, serverError } from '../utils/response.js';
 import { ensureLessonProgressForUser } from '../services/lessonProgressService.js';
+import { assessSpeakingSubmission } from '../services/speakingAssessmentService.js';
 import { evaluateWritingWithAI } from './gradingController.js';
 
 const LESSON_SECTIONS = ['vocabulary', 'grammar', 'listening', 'speaking', 'reading', 'writing'];
@@ -361,6 +362,51 @@ const updateSpeakingPracticeProgress = async ({ userId, lessonId, speakingId, su
     );
 };
 
+const applySpeakingEvaluation = async ({ userId, lesson, item, itemId, submission, evaluationPayload }) => {
+    const evaluation = normalizeSpeakingEvaluation({ evaluation: evaluationPayload });
+
+    submission.status = 'evaluated';
+    submission.evaluation = {
+        ...evaluation,
+        evaluatedBy: userId,
+        evaluatedAt: new Date()
+    };
+    submission.wordCount = evaluation.transcript?.trim()
+        ? evaluation.transcript.trim().split(/\s+/).length
+        : submission.wordCount;
+    await submission.save();
+
+    await updateSpeakingPracticeProgress({
+        userId: submission.student,
+        lessonId: lesson._id,
+        speakingId: item._id,
+        submission,
+        evaluation
+    });
+
+    const progress = await updateProgressItemResult({
+        userId: submission.student,
+        lesson,
+        sectionType: 'speaking',
+        itemId,
+        status: 'completed',
+        percentage: evaluation.percentage,
+        score: evaluation.percentage,
+        maxScore: 100,
+        resultKind: 'SpeakingSubmission',
+        resultId: submission._id,
+        breakdown: {
+            pronunciation: evaluation.pronunciation,
+            intonation: evaluation.intonation,
+            accuracy: evaluation.accuracy,
+            fluency: evaluation.fluency
+        },
+        title: item.title
+    });
+
+    return { evaluation, progress };
+};
+
 const assertLessonHasSkillItem = (lesson, sectionType, itemId) => {
     const ids = lesson[sectionType] || [];
     return ids.some(id => id.toString() === itemId.toString());
@@ -385,6 +431,27 @@ const updateProgressItemResult = async ({
 
     const section = progress.sections[sectionType];
     if (!section) return progress;
+
+    if (!section.items.some(sectionItem => sectionItem.itemId.toString() === itemId.toString())) {
+        section.items.push({
+            moduleType: sectionType,
+            itemId,
+            status: section.isUnlocked ? 'learning' : 'locked',
+            score: 0,
+            maxScore: 100,
+            percentage: 0,
+            attempts: 0
+        });
+        section.totalItems = Math.max(section.totalItems || 0, section.items.length);
+        if (sectionType === 'vocabulary' || sectionType === 'grammar') {
+            const expectedItems = buildSectionProgress(lesson, sectionType, section.isUnlocked);
+            expectedItems.items.forEach(expectedItem => {
+                const exists = section.items.some(sectionItem => sectionItem.itemId.toString() === expectedItem.itemId.toString());
+                if (!exists) section.items.push(expectedItem);
+            });
+            section.totalItems = section.items.length;
+        }
+    }
 
     const item = section.items.find(sectionItem => sectionItem.itemId.toString() === itemId.toString());
     if (!item) return progress;
@@ -818,7 +885,7 @@ export const submitLessonSkillItem = async (req, res) => {
             if (!audioUrl) return badRequest(res, 'Thiếu audioUrl');
             if (recordingDuration === undefined) return badRequest(res, 'Thiếu recordingDuration');
 
-            const hasEvaluation = Boolean(req.body?.evaluation || req.body?.aiEvaluation);
+            const hasEvaluation = isAdminUser(req.user) && Boolean(req.body?.evaluation || req.body?.aiEvaluation);
             const evaluation = hasEvaluation ? normalizeSpeakingEvaluation(req.body) : undefined;
             if (hasEvaluation && !evaluation.percentage && !evaluation.score) {
                 return badRequest(res, 'Thiếu điểm chấm bài nói');
@@ -849,38 +916,136 @@ export const submitLessonSkillItem = async (req, res) => {
                     submission,
                     evaluation
                 });
-            }
 
-            const nextPercentage = hasEvaluation ? evaluation.percentage : 0;
-            const progress = await updateProgressItemResult({
-                userId: req.user._id,
-                lesson,
-                sectionType,
-                itemId,
-                status: hasEvaluation ? 'completed' : 'learning',
-                percentage: nextPercentage,
-                score: nextPercentage,
-                maxScore: 100,
-                resultKind: 'SpeakingSubmission',
-                resultId: submission._id,
-                breakdown: hasEvaluation
-                    ? {
+                const progress = await updateProgressItemResult({
+                    userId: req.user._id,
+                    lesson,
+                    sectionType,
+                    itemId,
+                    status: 'completed',
+                    percentage: evaluation.percentage,
+                    score: evaluation.percentage,
+                    maxScore: 100,
+                    resultKind: 'SpeakingSubmission',
+                    resultId: submission._id,
+                    breakdown: {
                         pronunciation: evaluation.pronunciation,
                         intonation: evaluation.intonation,
                         accuracy: evaluation.accuracy,
                         fluency: evaluation.fluency
-                    }
-                    : undefined,
-                title: item.title
-            });
+                    },
+                    title: item.title
+                });
 
-            return created(res, { submission, progress }, hasEvaluation ? 'Nộp và chấm bài nói thành công' : 'Đã nhận audio bài nói, đang chờ AI chấm');
+                return created(res, { submission, progress }, 'Nộp và chấm bài nói thành công');
+            }
+
+            try {
+                const aiEvaluation = await assessSpeakingSubmission({ submission, speaking: item });
+                const { progress } = await applySpeakingEvaluation({
+                    userId: req.user._id,
+                    lesson,
+                    item,
+                    itemId,
+                    submission,
+                    evaluationPayload: aiEvaluation
+                });
+
+                return created(res, { submission, aiEvaluation, progress }, 'Nộp bài nói và chấm AI thành công');
+            } catch (aiError) {
+                submission.status = 'failed';
+                submission.evaluation = {
+                    provider: 'salio-speaking-ai',
+                    feedback: aiError.message,
+                    rawResult: { error: aiError.message },
+                    evaluatedAt: new Date()
+                };
+                await submission.save();
+
+                return serverError(res, 'Lỗi khi AI chấm bài nói: ' + aiError.message);
+            }
         }
 
         return badRequest(res, 'sectionType không hỗ trợ submit');
     } catch (error) {
         if (error.statusCode === 400) return badRequest(res, error.message);
         return serverError(res, 'Lỗi khi nộp bài kỹ năng: ' + error.message);
+    }
+};
+
+export const submitLessonSpeakingAudio = async (req, res) => {
+    try {
+        const { lessonId, itemId } = req.params;
+        assertObjectId(lessonId, 'lessonId');
+        assertObjectId(itemId, 'itemId');
+
+        if (!req.file?.location) {
+            return badRequest(res, 'Thiếu file audio bài nói');
+        }
+
+        const lesson = await Lesson.findOne(applyLessonAccess({ _id: lessonId }, req.user));
+        if (!lesson) return notFound(res, 'Không tìm thấy lesson');
+        if (!assertLessonHasSkillItem(lesson, 'speaking', itemId)) {
+            return notFound(res, 'Bài nói không thuộc lesson này');
+        }
+
+        const item = await Speaking.findById(itemId);
+        if (!item) return notFound(res, 'Không tìm thấy bài nói');
+
+        const recordingDuration = Number(req.body?.recordingDuration || 0);
+        if (!recordingDuration) return badRequest(res, 'Thiếu recordingDuration');
+
+        const submission = await SpeakingSubmission.create({
+            student: req.user._id,
+            lesson: lesson._id,
+            speaking: item._id,
+            audioUrl: req.file.location,
+            recordingDuration,
+            fileSize: req.file.size,
+            status: 'pending_ai'
+        });
+
+        await updateProgressItemResult({
+            userId: req.user._id,
+            lesson,
+            sectionType: 'speaking',
+            itemId,
+            status: 'learning',
+            percentage: 0,
+            score: 0,
+            maxScore: 100,
+            resultKind: 'SpeakingSubmission',
+            resultId: submission._id,
+            title: item.title
+        });
+
+        try {
+            const aiEvaluation = await assessSpeakingSubmission({ submission, speaking: item });
+            const { progress } = await applySpeakingEvaluation({
+                userId: req.user._id,
+                lesson,
+                item,
+                itemId,
+                submission,
+                evaluationPayload: aiEvaluation
+            });
+
+            return created(res, { submission, aiEvaluation, progress }, 'Upload audio và chấm bài nói thành công');
+        } catch (aiError) {
+            submission.status = 'failed';
+            submission.evaluation = {
+                provider: 'salio-speaking-ai',
+                feedback: aiError.message,
+                rawResult: { error: aiError.message },
+                evaluatedAt: new Date()
+            };
+            await submission.save();
+
+            return serverError(res, 'Lỗi khi AI chấm bài nói: ' + aiError.message);
+        }
+    } catch (error) {
+        if (error.statusCode === 400) return badRequest(res, error.message);
+        return serverError(res, 'Lỗi khi nộp audio bài nói: ' + error.message);
     }
 };
 

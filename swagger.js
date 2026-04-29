@@ -31,12 +31,15 @@ const swaggerOptions = {
       { name: 'Practice', description: 'Danh sách bài luyện tập và lịch sử làm bài' },
       { name: 'Attempts', description: 'Theo dõi, lưu đáp án, nộp bài và xem kết quả' },
       { name: 'Placement Test', description: 'Bài quiz đầu vào' },
-      { name: 'Grammars', description: 'Quản lý ngữ pháp và bài tập luyện ngữ pháp' },
       { name: 'Subscriptions', description: 'Quản lý gói cước và checkout' },
       { name: 'Payments', description: 'Quản lý thanh toán, webhook và cấp gói' },
-      { name: 'Vocabularies', description: 'Quản lý kho từ vựng' },
       { name: 'Flashcards', description: 'Quản lý bộ flashcard của người dùng' },
       { name: 'Support', description: 'FAQ và yêu cầu hỗ trợ' },
+      { name: 'Vocabularies', description: 'Quản lý kho từ vựng' },
+      { name: 'Grammars', description: 'Quản lý ngữ pháp và bài tập luyện ngữ pháp' },
+      { name: 'Lessons', description: 'Quản lý lesson, module và tiến độ học tập' },
+      { name: 'Audit Logs', description: 'Xem lịch sử hoạt động hệ thống' },
+
     ],
     components: {
       securitySchemes: {
