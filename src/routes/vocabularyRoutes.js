@@ -1,4 +1,4 @@
-import express from 'express';
+﻿import express from 'express';
 import {
     getVocabularies,
     createVocabulary,
@@ -48,6 +48,11 @@ router.use(protect);
  *     security:
  *       - bearerAuth: []
  *     parameters:
+ *       - in: query
+ *         name: lessonId
+ *         description: Nếu truyền lessonId, API lọc từ vựng của lesson và cập nhật tiến độ vocabulary trong LessonProgress.
+ *         schema:
+ *           type: string
  *       - in: query
  *         name: level
  *         schema:
@@ -144,7 +149,7 @@ router.get('/quizzes', admin, getVocabularyQuizzes);
  * /api/v1/vocabularies/quizzes:
  *   post:
  *     summary: Admin tạo quiz từ vựng
- *     description: Quiz từ vựng là vỏ quiz riêng, lắp các item từ /api/v1/bank/vocabulary.
+ *     description: Quiz từ vựng là vựng quiz riêng, lấy các item từ /api/v1/bank/vocabulary.
  *     tags: [Vocabularies]
  *     security:
  *       - bearerAuth: []
@@ -439,6 +444,11 @@ router.post('/quiz/start', startVocabularyQuiz);
  *       - bearerAuth: []
  *     parameters:
  *       - in: query
+ *         name: lessonId
+ *         description: Nếu truyền lessonId, API lọc từ vựng của lesson và cập nhật tiến độ vocabulary trong LessonProgress.
+ *         schema:
+ *           type: string
+ *       - in: query
  *         name: page
  *         schema:
  *           type: integer
@@ -502,8 +512,8 @@ router.get('/quiz/session/:sessionId', getVocabularyQuizSession);
  *               questionId:
  *                 type: string
  *               answer:
- *                 description: string cho short_answer hoặc đáp án được chọn cho single_choice
- *                 example: 학생
+ *                 description: string cho short_answer hoặc đáp án đã chọn cho single_choice
+ *                 example: học sinh
  *               timeSpent:
  *                 type: number
  *                 example: 120
@@ -518,7 +528,7 @@ router.post('/quiz/session/:sessionId/save-answer', saveVocabularyQuizAnswer);
  * /api/v1/vocabularies/quiz/session/{sessionId}/submit:
  *   post:
  *     summary: Nộp quiz từ vựng
- *     description: Chấm điểm và tự cập nhật trạng thái nhớ/không nhớ cho từng từ.
+ *     description: Chấm điểm và tự động cập nhật trạng thái nhớ/không nhớ cho từng từ.
  *     tags: [Vocabularies]
  *     security:
  *       - bearerAuth: []
@@ -578,6 +588,11 @@ router.get('/quiz/session/:sessionId/result', getVocabularyQuizResult);
  *     security:
  *       - bearerAuth: []
  *     parameters:
+ *       - in: query
+ *         name: lessonId
+ *         description: Lọc từ vựng theo lesson và cập nhật LessonProgress vocabulary cho student.
+ *         schema:
+ *           type: string
  *       - in: query
  *         name: page
  *         schema:
@@ -660,9 +675,9 @@ router.get('/:id', getVocabularyById);
  *               status:
  *                 type: string
  *                 enum: [learning, remembered, forgotten]
- *                 example: remembered
+ *                 example: remembered/learning/forgotten
  *               answer:
- *                 description: Đáp án hoặc ghi chú lần học gần nhất
+ *                 description: Đáp án hoặc ghi chú lý do học gần nhất
  *                 example: học sinh, sinh viên
  *     responses:
  *       200:
@@ -693,13 +708,13 @@ router.post('/:id/mark', markVocabularyLearningStatus);
  *             properties:
  *               word:
  *                 type: string
- *                 example: 학생
+ *                 example: học sinh
  *               meaning:
  *                 type: string
  *                 example: học sinh, sinh viên
  *               pronunciationText:
  *                 type: string
- *                 example: 학쌩
+ *                 example: học sinh
  *               type:
  *                 type: string
  *                 enum: [noun, verb, adjective, adverb]

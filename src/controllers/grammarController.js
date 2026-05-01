@@ -1,7 +1,9 @@
 ﻿import Grammar from '../models/Grammar.js';
+import Lesson from '../models/Lesson.js';
 import GrammarQuiz from '../models/GrammarQuiz.js';
 import GrammarQuizSession from '../models/GrammarQuizSession.js';
 import { ok, created, badRequest, notFound, serverError } from '../utils/response.js';
+import { updateLessonProgressForQuiz, updateLessonProgressItem } from '../services/lessonProgressService.js';
 
 const isAdminUser = (user) => user && ['admin', 'teacher'].includes(user.role);
 
@@ -213,6 +215,29 @@ export const getGrammarDetail = async (req, res) => {
             .select('-exercises')
             .populate('similarGrammar', 'structure meaning level tags');
         if (!grammar) return notFound(res, 'Không tìm thấy nội dung học ngữ pháp');
+
+        if (!isAdminUser(req.user)) {
+            const lessons = await Lesson.find({
+                isDeleted: false,
+                isPublished: true,
+                grammar: grammar._id
+            }).select('_id grammar grammarQuizzes vocabulary vocabularyQuizzes listening speaking reading writing');
+
+            await Promise.all(lessons.map(lesson => updateLessonProgressItem({
+                userId: req.user._id,
+                lesson,
+                sectionType: 'grammar',
+                moduleType: 'grammar',
+                itemId: grammar._id,
+                status: 'completed',
+                percentage: 100,
+                score: 100,
+                maxScore: 100,
+                resultKind: 'Manual',
+                title: grammar.structure
+            })));
+        }
+
         return ok(res, grammar, 'Lấy nội dung học ngữ pháp thành công');
     } catch (error) {
         return serverError(res, 'Lỗi khi lấy nội dung học ngữ pháp: ' + error.message);
@@ -529,6 +554,18 @@ export const submitGrammarQuiz = async (req, res) => {
         session.submittedAt = new Date();
         if (timeSpent !== undefined) session.timeSpent = timeSpent;
         await session.save();
+
+        await updateLessonProgressForQuiz({
+            userId: req.user._id,
+            quizId: session.quiz,
+            sectionType: 'grammar',
+            moduleType: 'grammarQuiz',
+            resultKind: 'GrammarQuizSession',
+            resultId: session._id,
+            percentage: session.percentage,
+            score: totalScore,
+            maxScore
+        });
 
         const completed = await GrammarQuizSession.findById(session._id).populate('questions.grammar', 'structure meaning level');
         return ok(res, completed, 'Nộp quiz ngữ pháp thành công');

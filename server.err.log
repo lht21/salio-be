@@ -601,3 +601,379 @@ SyntaxError: Unexpected token '<<'
     at async ModuleJob._link (node:internal/modules/esm/module_job:110:19)
 
 Node.js v20.19.0
+(node:5976) [MONGOOSE] Warning: mongoose: the `new` option for `findOneAndUpdate()` and `findOneAndReplace()` is deprecated. Use `returnDocument: 'after'` instead.
+(Use `node --trace-warnings ...` to show where the warning was created)
+SyntaxError: Exponent part is missing a number in JSON at position 26
+    at JSON.parse (<anonymous>)
+    at parse (D:\Salio\salio-be\node_modules\body-parser\lib\types\json.js:72:19)
+    at D:\Salio\salio-be\node_modules\body-parser\lib\read.js:162:18
+    at AsyncResource.runInAsyncScope (node:async_hooks:206:9)
+    at invokeCallback (D:\Salio\salio-be\node_modules\raw-body\index.js:238:16)
+    at done (D:\Salio\salio-be\node_modules\raw-body\index.js:227:7)
+    at IncomingMessage.onEnd (D:\Salio\salio-be\node_modules\raw-body\index.js:287:7)
+    at IncomingMessage.emit (node:events:524:28)
+    at endReadableNT (node:internal/streams/readable:1698:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:82:21)
+SyntaxError: Expected double-quoted property name in JSON at position 52
+    at JSON.parse (<anonymous>)
+    at parse (D:\Salio\salio-be\node_modules\body-parser\lib\types\json.js:72:19)
+    at D:\Salio\salio-be\node_modules\body-parser\lib\read.js:162:18
+    at AsyncResource.runInAsyncScope (node:async_hooks:206:9)
+    at invokeCallback (D:\Salio\salio-be\node_modules\raw-body\index.js:238:16)
+    at done (D:\Salio\salio-be\node_modules\raw-body\index.js:227:7)
+    at IncomingMessage.onEnd (D:\Salio\salio-be\node_modules\raw-body\index.js:287:7)
+    at IncomingMessage.emit (node:events:524:28)
+    at endReadableNT (node:internal/streams/readable:1698:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:82:21)
+(node:5900) [MONGOOSE] Warning: mongoose: the `new` option for `findOneAndUpdate()` and `findOneAndReplace()` is deprecated. Use `returnDocument: 'after'` instead.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:5900) [MONGOOSE] Warning: mongoose: the `new` option for `findOneAndUpdate()` and `findOneAndReplace()` is deprecated. Use `returnDocument: 'after'` instead.
+(node:5900) [MONGOOSE] Warning: mongoose: the `new` option for `findOneAndUpdate()` and `findOneAndReplace()` is deprecated. Use `returnDocument: 'after'` instead.
+(node:5900) [MONGOOSE] Warning: mongoose: the `new` option for `findOneAndUpdate()` and `findOneAndReplace()` is deprecated. Use `returnDocument: 'after'` instead.
+node:internal/modules/cjs/loader:1212
+  const err = new Error(message);
+              ^
+
+Error: Cannot find module '@apidevtools/swagger-parser'
+Require stack:
+- D:\Salio\salio-be\node_modules\swagger-parser\index.js
+- D:\Salio\salio-be\node_modules\swagger-jsdoc\src\specification.js
+- D:\Salio\salio-be\node_modules\swagger-jsdoc\src\lib.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1212:15)
+    at Module._load (node:internal/modules/cjs/loader:1043:27)
+    at Module.require (node:internal/modules/cjs/loader:1298:19)
+    at require (node:internal/modules/helpers:182:18)
+    at Object.<anonymous> (D:\Salio\salio-be\node_modules\swagger-parser\index.js:2:18)
+    at Module._compile (node:internal/modules/cjs/loader:1529:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1613:10)
+    at Module.load (node:internal/modules/cjs/loader:1275:32)
+    at Module._load (node:internal/modules/cjs/loader:1096:12)
+    at Module.require (node:internal/modules/cjs/loader:1298:19) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    'D:\\Salio\\salio-be\\node_modules\\swagger-parser\\index.js',
+    'D:\\Salio\\salio-be\\node_modules\\swagger-jsdoc\\src\\specification.js',
+    'D:\\Salio\\salio-be\\node_modules\\swagger-jsdoc\\src\\lib.js'
+  ]
+}
+
+Node.js v20.19.0
+node:internal/modules/esm/resolve:873
+  throw new ERR_MODULE_NOT_FOUND(packageName, fileURLToPath(base), null);
+        ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find package 'dotenv' imported from D:\Salio\salio-be\index.js
+    at packageResolve (node:internal/modules/esm/resolve:873:9)
+    at moduleResolve (node:internal/modules/esm/resolve:946:18)
+    at defaultResolve (node:internal/modules/esm/resolve:1188:11)
+    at ModuleLoader.defaultResolve (node:internal/modules/esm/loader:642:12)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:591:25)
+    at ModuleLoader.resolve (node:internal/modules/esm/loader:574:38)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:236:38)
+    at ModuleJob._link (node:internal/modules/esm/module_job:130:49) {
+  code: 'ERR_MODULE_NOT_FOUND'
+}
+
+Node.js v20.19.0
+node:internal/modules/esm/resolve:873
+  throw new ERR_MODULE_NOT_FOUND(packageName, fileURLToPath(base), null);
+        ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find package 'dotenv' imported from D:\Salio\salio-be\index.js
+    at packageResolve (node:internal/modules/esm/resolve:873:9)
+    at moduleResolve (node:internal/modules/esm/resolve:946:18)
+    at defaultResolve (node:internal/modules/esm/resolve:1188:11)
+    at ModuleLoader.defaultResolve (node:internal/modules/esm/loader:642:12)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:591:25)
+    at ModuleLoader.resolve (node:internal/modules/esm/loader:574:38)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:236:38)
+    at ModuleJob._link (node:internal/modules/esm/module_job:130:49) {
+  code: 'ERR_MODULE_NOT_FOUND'
+}
+
+Node.js v20.19.0
+node:internal/modules/esm/resolve:873
+  throw new ERR_MODULE_NOT_FOUND(packageName, fileURLToPath(base), null);
+        ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find package 'dotenv' imported from D:\Salio\salio-be\index.js
+    at packageResolve (node:internal/modules/esm/resolve:873:9)
+    at moduleResolve (node:internal/modules/esm/resolve:946:18)
+    at defaultResolve (node:internal/modules/esm/resolve:1188:11)
+    at ModuleLoader.defaultResolve (node:internal/modules/esm/loader:642:12)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:591:25)
+    at ModuleLoader.resolve (node:internal/modules/esm/loader:574:38)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:236:38)
+    at ModuleJob._link (node:internal/modules/esm/module_job:130:49) {
+  code: 'ERR_MODULE_NOT_FOUND'
+}
+
+Node.js v20.19.0
+node:internal/modules/esm/resolve:873
+  throw new ERR_MODULE_NOT_FOUND(packageName, fileURLToPath(base), null);
+        ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find package 'dotenv' imported from D:\Salio\salio-be\index.js
+    at packageResolve (node:internal/modules/esm/resolve:873:9)
+    at moduleResolve (node:internal/modules/esm/resolve:946:18)
+    at defaultResolve (node:internal/modules/esm/resolve:1188:11)
+    at ModuleLoader.defaultResolve (node:internal/modules/esm/loader:642:12)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:591:25)
+    at ModuleLoader.resolve (node:internal/modules/esm/loader:574:38)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:236:38)
+    at ModuleJob._link (node:internal/modules/esm/module_job:130:49) {
+  code: 'ERR_MODULE_NOT_FOUND'
+}
+
+Node.js v20.19.0
+node:internal/modules/esm/resolve:873
+  throw new ERR_MODULE_NOT_FOUND(packageName, fileURLToPath(base), null);
+        ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find package 'dotenv' imported from D:\Salio\salio-be\index.js
+    at packageResolve (node:internal/modules/esm/resolve:873:9)
+    at moduleResolve (node:internal/modules/esm/resolve:946:18)
+    at defaultResolve (node:internal/modules/esm/resolve:1188:11)
+    at ModuleLoader.defaultResolve (node:internal/modules/esm/loader:642:12)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:591:25)
+    at ModuleLoader.resolve (node:internal/modules/esm/loader:574:38)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:236:38)
+    at ModuleJob._link (node:internal/modules/esm/module_job:130:49) {
+  code: 'ERR_MODULE_NOT_FOUND'
+}
+
+Node.js v20.19.0
+node:internal/modules/esm/resolve:873
+  throw new ERR_MODULE_NOT_FOUND(packageName, fileURLToPath(base), null);
+        ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find package 'dotenv' imported from D:\Salio\salio-be\index.js
+    at packageResolve (node:internal/modules/esm/resolve:873:9)
+    at moduleResolve (node:internal/modules/esm/resolve:946:18)
+    at defaultResolve (node:internal/modules/esm/resolve:1188:11)
+    at ModuleLoader.defaultResolve (node:internal/modules/esm/loader:642:12)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:591:25)
+    at ModuleLoader.resolve (node:internal/modules/esm/loader:574:38)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:236:38)
+    at ModuleJob._link (node:internal/modules/esm/module_job:130:49) {
+  code: 'ERR_MODULE_NOT_FOUND'
+}
+
+Node.js v20.19.0
+node:internal/modules/esm/resolve:215
+  const resolvedOption = FSLegacyMainResolve(packageJsonUrlString, packageConfig.main, baseStringified);
+                         ^
+
+Error: Cannot find package 'D:\Salio\salio-be\node_modules\dotenv\index.js' imported from D:\Salio\salio-be\index.js
+    at legacyMainResolve (node:internal/modules/esm/resolve:215:26)
+    at packageResolve (node:internal/modules/esm/resolve:860:14)
+    at moduleResolve (node:internal/modules/esm/resolve:946:18)
+    at defaultResolve (node:internal/modules/esm/resolve:1188:11)
+    at ModuleLoader.defaultResolve (node:internal/modules/esm/loader:642:12)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:591:25)
+    at ModuleLoader.resolve (node:internal/modules/esm/loader:574:38)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:236:38)
+    at ModuleJob._link (node:internal/modules/esm/module_job:130:49) {
+  code: 'ERR_MODULE_NOT_FOUND'
+}
+
+Node.js v20.19.0
+file:///D:/Salio/salio-be/src/controllers/grammarController.js:501
+        if (questions.length === 0) return badRequest(res, 'Quiz ng沼?ph찼p ch튼a c처 c창u h沼뢩 h沼즤 l沼?);
+                                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+SyntaxError: Invalid or unexpected token
+    at compileSourceTextModule (node:internal/modules/esm/utils:340:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:146:18)
+    at #translate (node:internal/modules/esm/loader:431:12)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:478:27)
+
+Node.js v20.19.0
+Here's the report: 
+
+
+ Error in ./src/routes/grammarRoutes.js :
+YAMLSemanticError: Nested mappings are not allowed in compact mappings at line 17, column 26:
+
+                example: N?낅땲?? *               meaning:
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^…
+
+YAMLSemanticError: Map keys must be unique; "type" is repeated at line 16, column 17:
+
+                type: string
+                ^^^^^^^^^^^^…
+
+YAMLSemanticError: Map keys must be unique; "example" is repeated at line 16, column 17:
+
+                type: string
+                ^^^^^^^^^^^^…
+
+YAMLSemanticError: Nested mappings are not allowed in compact mappings at line 44, column 24:
+
+            structure: N?낅땲?? *             meaning: L횪 N
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^…
+
+YAMLSemanticError: Nested mappings are not allowed in compact mappings at line 56, column 35:
+
+                correctAnswerStr: ?낅땲?? *                 sentenceLeft: ????숈깮
+                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^…
+
+YAMLSemanticError: Insufficient indentation in flow collection at line 65, column 24:
+
+                words: [?낅땲??, ?닿쾬?, 梨?
+                       ^^^^^^^^^^^^^^^^^…
+
+YAMLSemanticError: Implicit keys of flow sequence pairs need to be on a single line at line 65, column 39:
+
+                words: [?낅땲??, ?닿쾬?, 梨?
+                                      ^^…
+
+YAMLSemanticError: Expected a , in flow sequence at line 67, column 5:
+
+    responses:
+    ^^^^^^^^^
+
+YAMLSemanticError: Chaining flow sequence pairs is invalid at line 68, column 10:
+
+      201:
+         ^
+
+YAMLSemanticError: Chaining flow sequence pairs is invalid at line 69, column 20:
+
+        description: T梳죓 ng沼?ph찼p th횪nh c척ng
+                   ^
+
+YAMLSemanticError: Expected flow sequence to end with ] at line 2, column 6:
+
+  post:
+     ^
+,Error in ./src/routes/grammarRoutes.js :
+YAMLSemanticError: Nested mappings are not allowed in compact mappings at line 3, column 14:
+
+    summary: L梳쪅 danh s찼ch ng沼?ph찼p t튼퉤ng t沼? *     tags: [Grammars]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^…
+
+file:///D:/Salio/salio-be/src/controllers/grammarController.js:461
+        if (questions.length === 0) return badRequest(res, 'Quiz ng沼?ph찼p ch튼a c처 c창u h沼뢩 h沼즤 l沼?);
+                                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+SyntaxError: Invalid or unexpected token
+    at compileSourceTextModule (node:internal/modules/esm/utils:340:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:146:18)
+    at #translate (node:internal/modules/esm/loader:431:12)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:478:27)
+
+Node.js v20.19.0
+file:///D:/Salio/salio-be/src/controllers/grammarController.js:461
+        if (questions.length === 0) return badRequest(res, 'Quiz ng沼?ph찼p ch튼a c처 c창u h沼뢩 h沼즤 l沼?);
+                                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+SyntaxError: Invalid or unexpected token
+    at compileSourceTextModule (node:internal/modules/esm/utils:340:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:146:18)
+    at #translate (node:internal/modules/esm/loader:431:12)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:478:27)
+
+Node.js v20.19.0
+file:///D:/Salio/salio-be/src/controllers/grammarController.js:461
+        if (questions.length === 0) return badRequest(res, 'Quiz ng沼?ph찼p ch튼a c처 c창u h沼뢩 h沼즤 l沼?);
+                                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+SyntaxError: Invalid or unexpected token
+    at compileSourceTextModule (node:internal/modules/esm/utils:340:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:146:18)
+    at #translate (node:internal/modules/esm/loader:431:12)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:478:27)
+
+Node.js v20.19.0
+file:///D:/Salio/salio-be/src/controllers/grammarController.js:461
+        if (questions.length === 0) return badRequest(res, 'Quiz ng沼?ph찼p ch튼a c처 c창u h沼뢩 h沼즤 l沼?);
+                                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+SyntaxError: Invalid or unexpected token
+    at compileSourceTextModule (node:internal/modules/esm/utils:340:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:146:18)
+    at #translate (node:internal/modules/esm/loader:431:12)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:478:27)
+
+Node.js v20.19.0
+Here's the report: 
+
+
+ Error in ./src/routes/grammarRoutes.js :
+YAMLSemanticError: Insufficient indentation in flow collection at line 67, column 24:
+
+                words: [?낅땲??, ?닿쾬?, 梨?
+                       ^^^^^^^^^^^^^^^^^…
+
+YAMLSemanticError: Implicit keys of flow sequence pairs need to be on a single line at line 67, column 39:
+
+                words: [?낅땲??, ?닿쾬?, 梨?
+                                      ^^…
+
+YAMLSemanticError: Expected a , in flow sequence at line 69, column 5:
+
+    responses:
+    ^^^^^^^^^
+
+YAMLSemanticError: Chaining flow sequence pairs is invalid at line 70, column 10:
+
+      201:
+         ^
+
+YAMLSemanticError: Chaining flow sequence pairs is invalid at line 71, column 20:
+
+        description: T梳죓 ng沼?ph찼p th횪nh c척ng
+                   ^
+
+YAMLSemanticError: Expected flow sequence to end with ] at line 2, column 6:
+
+  post:
+     ^
+
+node:internal/modules/esm/resolve:283
+    throw new ERR_MODULE_NOT_FOUND(
+          ^
+
+Error [ERR_MODULE_NOT_FOUND]: Cannot find module 'D:\Salio\salio-be\src\models\Lesson.js' imported from D:\Salio\salio-be\src\controllers\placementTestController.js
+    at finalizeResolution (node:internal/modules/esm/resolve:283:11)
+    at moduleResolve (node:internal/modules/esm/resolve:952:10)
+    at defaultResolve (node:internal/modules/esm/resolve:1188:11)
+    at ModuleLoader.defaultResolve (node:internal/modules/esm/loader:642:12)
+    at #cachedDefaultResolve (node:internal/modules/esm/loader:591:25)
+    at ModuleLoader.resolve (node:internal/modules/esm/loader:574:38)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:236:38)
+    at ModuleJob._link (node:internal/modules/esm/module_job:130:49) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///D:/Salio/salio-be/src/models/Lesson.js'
+}
+
+Node.js v20.19.0
+node:internal/modules/cjs/loader:1215
+  throw err;
+  ^
+
+Error: Cannot find module 'D:\Salio\salio-be\index.js'
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1212:15)
+    at Module._load (node:internal/modules/cjs/loader:1043:27)
+    at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:164:12)
+    at node:internal/main/run_main_module:28:49 {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: []
+}
+
+Node.js v20.19.0
+node:internal/modules/cjs/loader:1215
+  throw err;
+  ^
+
+Error: Cannot find module 'D:\Salio\salio-be\index.js'
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1212:15)
+    at Module._load (node:internal/modules/cjs/loader:1043:27)
+    at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:164:12)
+    at node:internal/main/run_main_module:28:49 {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: []
+}
+
+Node.js v20.19.0

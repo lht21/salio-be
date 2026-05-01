@@ -1,4 +1,5 @@
 import Vocabulary from '../models/Vocabulary.js';
+import Lesson from '../models/Lesson.js';
 import VocabularyQuiz from '../models/VocabularyQuiz.js';
 import VocabularyProgress from '../models/VocabularyProgress.js';
 import VocabularyQuizSession from '../models/VocabularyQuizSession.js';
@@ -8,6 +9,7 @@ import { ok, created, badRequest, notFound, serverError, conflict } from '../uti
 import xlsx from 'xlsx';
 import { DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { s3Client } from "../middlewares/upload.js";
+import { updateLessonProgressForQuiz, updateLessonProgressItem } from '../services/lessonProgressService.js';
 
 const REVIEW_INTERVALS = {
     learning: 1,
@@ -26,6 +28,8 @@ const isAnswerCorrect = (userAnswer, correctAnswer) => {
     const normalizedCorrect = normalizeAnswer(correctAnswer);
     return JSON.stringify(normalizedUser) === JSON.stringify(normalizedCorrect);
 };
+
+const isAdminUser = (user) => user && ['admin', 'teacher'].includes(user.role);
 
 const nextReviewDate = (status) => {
     const days = REVIEW_INTERVALS[status] ?? 1;
@@ -69,16 +73,52 @@ const updateVocabularyProgress = async ({ userId, vocabularyId, isCorrect, answe
     );
 };
 
+const getLessonForVocabularyProgress = async (lessonId, user) => {
+    if (!lessonId || isAdminUser(user)) return null;
+
+    return Lesson.findOne({
+        _id: lessonId,
+        isDeleted: false,
+        isPublished: true
+    }).select('_id vocabulary vocabularyQuizzes grammar grammarQuizzes listening speaking reading writing');
+};
+
+const completeLessonVocabularyItems = async ({ userId, lesson }) => {
+    if (!lesson || !Array.isArray(lesson.vocabulary) || lesson.vocabulary.length === 0) return;
+
+    await Promise.all(lesson.vocabulary.map(vocabularyId => updateLessonProgressItem({
+        userId,
+        lesson,
+        sectionType: 'vocabulary',
+        moduleType: 'vocabulary',
+        itemId: vocabularyId,
+        status: 'completed',
+        percentage: 100,
+        score: 100,
+        maxScore: 100,
+        resultKind: 'Manual',
+        title: 'Đã học từ vựng'
+    })));
+};
+
 /**
  * GET /api/v1/vocabularies
  * Lấy danh sách từ vựng (Có phân trang, filter level, category, keyword)
  */
 export const getVocabularies = async (req, res) => {
     try {
-        const { page = 1, limit = 20, level, category, search, isActive } = req.query;
+        const { page = 1, limit = 20, level, category, search, isActive, lessonId } = req.query;
         const skip = (Number(page) - 1) * Number(limit);
 
         const query = {};
+        const lesson = await getLessonForVocabularyProgress(lessonId, req.user);
+
+        if (lessonId) {
+            if (!lesson && !isAdminUser(req.user)) return notFound(res, 'Không tìm thấy lesson');
+            const lessonForFilter = lesson || await Lesson.findOne({ _id: lessonId, isDeleted: false }).select('vocabulary');
+            if (!lessonForFilter) return notFound(res, 'Không tìm thấy lesson');
+            query._id = { $in: lessonForFilter.vocabulary || [] };
+        }
 
         if (level) query.level = level;
         if (category) query.category = category;
@@ -98,6 +138,8 @@ export const getVocabularies = async (req, res) => {
             .limit(Number(limit));
 
         const total = await Vocabulary.countDocuments(query);
+
+        await completeLessonVocabularyItems({ userId: req.user._id, lesson });
 
         return ok(res, {
             vocabularies,
@@ -155,8 +197,17 @@ export const getVocabularyById = async (req, res) => {
  */
 export const getVocabularyStudyQueue = async (req, res) => {
     try {
-        const { level, category, status, limit = 20 } = req.query;
+        const { level, category, status, limit = 20, lessonId } = req.query;
         const vocabQuery = { isActive: true };
+        const lesson = await getLessonForVocabularyProgress(lessonId, req.user);
+
+        if (lessonId) {
+            if (!lesson && !isAdminUser(req.user)) return notFound(res, 'Không tìm thấy lesson');
+            const lessonForFilter = lesson || await Lesson.findOne({ _id: lessonId, isDeleted: false }).select('vocabulary');
+            if (!lessonForFilter) return notFound(res, 'Không tìm thấy lesson');
+            vocabQuery._id = { $in: lessonForFilter.vocabulary || [] };
+        }
+
         if (level) vocabQuery.level = level;
         if (category) vocabQuery.category = category;
 
@@ -185,6 +236,8 @@ export const getVocabularyStudyQueue = async (req, res) => {
         if (status) {
             queue = queue.filter(item => item.learningStatus.status === status);
         }
+
+        await completeLessonVocabularyItems({ userId: req.user._id, lesson });
 
         return ok(res, queue, 'Lấy danh sách từ vựng cần học thành công');
     } catch (error) {
@@ -608,6 +661,18 @@ export const submitVocabularyQuiz = async (req, res) => {
         session.submittedAt = new Date();
         if (timeSpent !== undefined) session.timeSpent = timeSpent;
         await session.save();
+
+        await updateLessonProgressForQuiz({
+            userId: req.user._id,
+            quizId: session.quiz,
+            sectionType: 'vocabulary',
+            moduleType: 'vocabularyQuiz',
+            resultKind: 'VocabularyQuizSession',
+            resultId: session._id,
+            percentage: session.percentage,
+            score: totalScore,
+            maxScore
+        });
 
         const completedSession = await VocabularyQuizSession.findById(session._id)
             .populate('questions.vocabulary', 'word meaning pronunciationText imageUrl level category');
