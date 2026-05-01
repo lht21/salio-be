@@ -83,10 +83,12 @@ userSchema.methods.comparePassword = async function (candidatePassword) {
  */
 userSchema.methods.toPublicJSON = function () {
   const base = {
-    id: this._id,
+    _id: this._id,
     username: this.username,
     email: this.email,
     avatarUrl: this.avatarUrl,
+    role: this.role,
+    level: this.level,
     preferences: this.preferences,
     subscription: this.subscription,
     isEmailVerified: this.isEmailVerified,

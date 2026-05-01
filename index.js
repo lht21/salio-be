@@ -67,7 +67,7 @@ app.get('/api-docs.json', (req, res) => {
 });
 
 // Định tuyến API
-app.use('/api/auth', authRoutes);
+app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/bank', questionBankRoutes);
 app.use('/api/v1/upload', uploadRoutes);

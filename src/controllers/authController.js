@@ -248,6 +248,7 @@ const register = async (req, res) => {
       res,
       {
         accessToken,
+        refreshToken,
         user: user.toPublicJSON(),
       },
       'Đăng ký tài khoản thành công'
@@ -363,6 +364,7 @@ const socialLogin = async (req, res) => {
       res,
       {
         accessToken,
+        refreshToken,
         user: user.toPublicJSON(),
       },
       'Đăng nhập thành công'
@@ -416,6 +418,7 @@ const login = async (req, res) => {
       res,
       {
         accessToken,
+        refreshToken,
         user: user.toPublicJSON(),
       },
       'Đăng nhập thành công'
