@@ -15,7 +15,7 @@ import { evaluateWritingWithAI } from './gradingController.js';
 export const getPracticeSets = async (req, res) => {
     try {
         const { type } = req.params;
-        const { page = 1, limit = 10 } = req.query;
+        const { page = 1, limit = 10, examType } = req.query;
         const skip = (Number(page) - 1) * Number(limit);
 
         let data = [], total = 0;
@@ -23,6 +23,7 @@ export const getPracticeSets = async (req, res) => {
         if (['reading', 'listening', 'full'].includes(type)) {
             // Lọc ra các Exam đang active và chứa câu hỏi phần tương ứng
             const query = { isActive: true };
+            if (examType) query.examType = examType;
             if (type === 'reading') query['sections.reading.0'] = { $exists: true };
             if (type === 'listening') query['sections.listening.0'] = { $exists: true };
             // Nếu type === 'full', query tất cả các Exam active

@@ -147,14 +147,27 @@ export const updateBankItem = async (req, res) => {
             }
         };
 
-        // Nếu client gửi lên audioUrl mới (hoặc null) và khác với audioUrl cũ -> Xóa file cũ
-        if (req.body.audioUrl !== undefined && req.body.audioUrl !== oldItem.audioUrl) {
-            await deleteS3File(oldItem.audioUrl);
-        }
+        // Trích xuất toàn bộ URL từ item (Bao gồm root và trong mảng questions)
+        const extractS3Urls = (data) => {
+            const urls = [];
+            if (data.audioUrl) urls.push(data.audioUrl);
+            if (data.attachedImage) urls.push(data.attachedImage);
+            if (data.questions && Array.isArray(data.questions)) {
+                data.questions.forEach(q => {
+                    if (q.audioUrl) urls.push(q.audioUrl);
+                    if (q.imageUrl) urls.push(q.imageUrl);
+                });
+            }
+            return urls.filter(Boolean);
+        };
 
-        // Nếu client gửi lên attachedImage mới (hoặc null) và khác với ảnh cũ -> Xóa ảnh cũ
-        if (req.body.attachedImage !== undefined && req.body.attachedImage !== oldItem.attachedImage) {
-            await deleteS3File(oldItem.attachedImage);
+        // So sánh: Những URL có ở oldItem nhưng KHÔNG CÒN ở req.body -> Cần xóa trên S3
+        const oldUrls = extractS3Urls(oldItem);
+        const newUrls = extractS3Urls(req.body);
+        const urlsToDelete = oldUrls.filter(url => !newUrls.includes(url));
+        
+        for (const url of urlsToDelete) {
+            await deleteS3File(url);
         }
 
         const updatedItem = await Model.findByIdAndUpdate(itemId, req.body, {
@@ -222,12 +235,24 @@ export const deleteBankItem = async (req, res) => {
         }
 
         // --- DỌN DẸP FILE TRÊN S3 (NẾU CÓ) ---
-        // Check xem document vừa xóa có chứa link audioUrl hoặc attachedImage không
-        const fileUrl = deletedItem.audioUrl || deletedItem.attachedImage;
-        if (fileUrl) {
+        const extractS3Urls = (data) => {
+            const urls = [];
+            if (data.audioUrl) urls.push(data.audioUrl);
+            if (data.attachedImage) urls.push(data.attachedImage);
+            if (data.questions && Array.isArray(data.questions)) {
+                data.questions.forEach(q => {
+                    if (q.audioUrl) urls.push(q.audioUrl);
+                    if (q.imageUrl) urls.push(q.imageUrl);
+                });
+            }
+            return urls.filter(Boolean);
+        };
+
+        const urlsToDelete = extractS3Urls(deletedItem);
+        for (const fileUrl of urlsToDelete) {
             try {
                 const parsedUrl = new URL(fileUrl);
-                const key = decodeURIComponent(parsedUrl.pathname.substring(1)); // Lấy S3 Key từ URL
+                const key = decodeURIComponent(parsedUrl.pathname.substring(1));
                 await s3Client.send(new DeleteObjectCommand({
                     Bucket: process.env.AWS_S3_BUCKET_NAME,
                     Key: key

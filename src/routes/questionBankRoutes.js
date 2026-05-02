@@ -184,6 +184,9 @@ router.get('/:type', getBankItems);
  *                     audioUrl:
  *                       type: string
  *                       description: Audio riêng cho câu hỏi nếu có
+ *                     imageUrl:
+ *                       type: string
+ *                       description: Ảnh đính kèm riêng cho từng câu hỏi; lấy từ /api/v1/upload/image.
  *                     scripts:
  *                       type: array
  *                       items:
